@@ -31,7 +31,7 @@ public class Main {
     private final JLayeredPane layeredPane;
     private final DataView dataView;
     private final JFrame leftFrame;
-    private static final String buttonName = "Add member";
+    private static final String addNewMember = "Add member";
 
     public Main() {
         UseCase useCase = new UseCase();
@@ -43,36 +43,19 @@ public class Main {
             public void componentResized(ComponentEvent e) {
                 Dimension parentSize = leftFrame.getSize();
 
+                // Create a new Layout class that this method delegates to and
+                // child views listen to. Use the Swing ActionListener interface?
+                // Find out how layout managers to it.
+                //
+
                 layeredPane.setSize(parentSize);
                 listView.getView().setSize(parentSize);
 
-                int padding = 10;
-                Point bottomRightOfPanel = new Point(
-                        parentSize.width - padding,
-                        parentSize.height - padding
-                );
+                for (Component component : layeredPane.getComponents()) {
 
-                for (Component c : layeredPane.getComponents()) {
-                    Dimension componentSize = c.getSize();
-
-                    if (c.getName() != null)
-                        if (c.getName().equals(buttonName)) {
-
-                            int xLocation = bottomRightOfPanel.x - (int) componentSize.getWidth();
-                            int yLocation = bottomRightOfPanel.y - (int) componentSize.getHeight() * 2;
-
-                            System.out.println(TAG + "Button=" + buttonName +
-                                    " bottom right of panel=" + bottomRightOfPanel +
-                                    " xLoc=" + xLocation + " yLoc=" + yLocation);
-
-                            Rectangle positionAndSize = new Rectangle(
-                                    xLocation,
-                                    yLocation,
-                                    (int) componentSize.getWidth(),
-                                    (int) componentSize.getHeight()
-                            );
-
-                            c.setBounds(positionAndSize);
+                    if (component.getName() != null)
+                        if (component.getName().equals(addNewMember)) {
+                            positionAddNewMemberButton(parentSize, component);
                         }
 
                 }
@@ -88,29 +71,48 @@ public class Main {
 
         layeredPane.setOpaque(true);
 
-
         Button button = new Button("Click to add a new member");
-        button.setName(buttonName);
+        button.setName(addNewMember);
         dataView = new DataView();
-
 
         listView = controller.getView();
 
-        layeredPane.add(listView.getView(), Integer.valueOf(0));
-//        layeredPane.moveToBack(listView.getView());
-        Dimension dimension = listView.getView().getPreferredSize();
+        layeredPane.add(listView.getView());
+        layeredPane.moveToBack(listView.getView());
+        Dimension listViewSize = listView.getView().getPreferredSize();
         listView.getView().setBounds(new Rectangle(0, 0,
-                (int) dimension.getWidth(), (int) dimension.getHeight())
+                (int) listViewSize.getWidth(), (int) listViewSize.getHeight())
         );
 
-        layeredPane.add(button, Integer.valueOf(1));
-//        layeredPane.moveToFront(button);
+        layeredPane.add(button);
+        layeredPane.moveToFront(button);
         button.setBounds(new Rectangle(100, 100, 50, 30));
 
         setupRightFrame(getRightFrameLocation(setupLeftFrame()));
 
         useCase.setModels(TestData.myModels);
         dataView.setModels(TestData.myModels);
+    }
+
+    private void positionAddNewMemberButton(Dimension parentSize,
+                                            Component component) {
+        int padding = 10;
+        Point bottomRightOfPanel = new Point(
+                parentSize.width - padding,
+                parentSize.height - padding
+        );
+
+        Dimension componentSize = component.getSize();
+
+        int w = componentSize.width;
+        int h = componentSize.height;
+        int x = bottomRightOfPanel.x - w;
+        int y = bottomRightOfPanel.y - h * 2;
+
+
+        Rectangle positionAndSize = new Rectangle(x, y, w, h);
+
+        component.setBounds(positionAndSize);
     }
 
     private JFrame setupLeftFrame() {
