@@ -1,4 +1,4 @@
-package main.itemview;
+package ui.itemview;
 
 import utils.SpringUtilities;
 
@@ -6,9 +6,15 @@ import javax.swing.*;
 
 public class FormView {
 
-    static final int PADDING = 5;
-    static final int START_POSITION = 10;
-    static final int PREFERRED_HEIGHT = 100;
+    public enum FieldName {
+        FIRST_NAME,
+        LAST_NAME,
+        AGE
+    }
+
+    public static final int PADDING = 5;
+    public static final int START_POSITION = 10;
+    public static final int PREFERRED_HEIGHT = 100;
 
     private final JPanel view;
 
@@ -22,20 +28,23 @@ public class FormView {
             lastNameField,
             ageField;
 
-    FormView() {
+    public FormView() {
         view = new JPanel(new SpringLayout());
 
         firstNameLabel = new JLabel("First name");
-        lastNameLabel = new JLabel("Last name");
-        ageLabel = new JLabel("Age");
-
         firstNameField = new JTextField();
+        firstNameField.setName(FieldName.FIRST_NAME.name());
+
+        lastNameLabel = new JLabel("Last name");
         lastNameField = new JTextField();
+        lastNameField.setName(FieldName.LAST_NAME.name());
+
+        ageLabel = new JLabel("Age");
         ageField = new JTextField();
+        ageField.setName(FieldName.AGE.name());
     }
 
     public void createView() {
-        view.setOpaque(true);
 
         JLabel[] labels = {
                 firstNameLabel,

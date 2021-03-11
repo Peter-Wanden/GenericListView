@@ -1,11 +1,17 @@
-package main.itemview;
+package ui.itemview;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A listener whose purpose is to be attached to any {@link JTextComponent}.
+ * Once attached any registered listeners are informed of changes to
+ * the underlying JTextComponents {@link Document} object.
+ */
 public class TextListener
         implements DocumentListener {
 
@@ -26,19 +32,16 @@ public class TextListener
 
     @Override
     public void insertUpdate(DocumentEvent e) {
-//        System.out.println(TAG + "insertUpdate");
         notifyTextChangedListeners();
     }
 
     @Override
     public void removeUpdate(DocumentEvent e) {
-//        System.out.println(TAG + "removeUpdate");
         notifyTextChangedListeners();
     }
 
     @Override
     public void changedUpdate(DocumentEvent e) {
-//        System.out.println(TAG + "changedUpdate");
         notifyTextChangedListeners();
     }
 
@@ -51,7 +54,6 @@ public class TextListener
     }
 
     private void notifyTextChangedListeners() {
-//        System.out.println(TAG + "textUpdated()");
         textChangedListeners.forEach(listener -> listener.textChanged(source));
     }
 }

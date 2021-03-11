@@ -4,10 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Shamelessly stolen for this demo from the following link. Please upvote the poster if this helps you.
+ * Shamelessly stolen for this demo from the following link.
  *
- * @see <a href="https://stackoverflow.com/questions/15025092/border-with-rounded-corners-transparency">
+ * <a href="https://stackoverflow.com/questions/15025092/border-with-rounded-corners-transparency">
  * Border with rounded corners transparency</a>
+ * Please upvote the poster if this helps you.
  */
 public class RoundedPanel
         extends JPanel {

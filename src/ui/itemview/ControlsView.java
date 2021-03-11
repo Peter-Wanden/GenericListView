@@ -1,4 +1,4 @@
-package main.itemview;
+package ui.itemview;
 
 import javax.swing.*;
 
@@ -8,38 +8,28 @@ public class ControlsView {
 
     private final JPanel view;
     private final JCheckBox isMemberCheckBox;
-    private final JButton addMemberButton, removeMemberButton, deleteButton;
+    private final JButton
+            addMemberButton,
+            removeMemberButton,
+            deleteButton;
 
-    ControlsView() {
+    public ControlsView() {
         view = new JPanel();
         isMemberCheckBox = new JCheckBox("Is member");
-        addMemberButton = new JButton("Add member");
-        removeMemberButton  = new JButton("Remove member");
-        deleteButton = new JButton("Delete record");
+        addMemberButton = new JButton("Add");
+        removeMemberButton  = new JButton("Remove");
+        deleteButton = new JButton("Delete");
     }
 
     public void createView() {
-        view.setOpaque(true);
         view.setLayout(
                 new BoxLayout(view, BoxLayout.LINE_AXIS)
         );
 
         isMemberCheckBox.setEnabled(false);
         view.add(isMemberCheckBox);
-
-        addMemberButton.setActionCommand(
-                ItemController.ControlCommand.ADD_MEMBER_COMMAND.name()
-        );
         view.add(addMemberButton);
-
-        removeMemberButton.setActionCommand(
-                ItemController.ControlCommand.REMOVE_MEMBER_COMMAND.name()
-        );
         view.add(removeMemberButton);
-
-        deleteButton.setActionCommand(
-                ItemController.ControlCommand.DELETE_RECORD_COMMAND.name()
-        );
         view.add(deleteButton);
     }
 

@@ -1,9 +1,10 @@
-package main.listview;
+package ui.mylistview;
 
-import main.data.MyModel;
-import main.domain.UseCase;
-import main.itemview.ItemController;
-import main.itemview.ItemController.FieldName;
+import domain.UseCaseObservableList;
+import listview.AbstractGenericListView;
+import data.MyModel;
+import ui.itemview.FormView;
+import ui.itemview.ItemController;
 
 public class MyGenericListViewController
         implements
@@ -12,10 +13,10 @@ public class MyGenericListViewController
 
     private static final String TAG = "MyGenericListViewController" + ": ";
 
-    private final UseCase useCase;
+    private final UseCaseObservableList useCase;
     private final AbstractGenericListView listView;
 
-    public MyGenericListViewController(UseCase useCase) {
+    public MyGenericListViewController(UseCaseObservableList useCase) {
 
         this.useCase = useCase;
         listView = new MyGenericListView(this, useCase);
@@ -27,12 +28,12 @@ public class MyGenericListViewController
      * {@link ItemController.FieldChangedListener}. Called whenever there
      * is a change to one of the fields values.
      * @param index the index of the {@link MyModel} in the list.
-     * @param fieldName an {@link FieldName} enum value describing the field.
+     * @param fieldName an {@link FormView.FieldName} enum value describing the field.
      * @param value the current value of the field.
      */
     @Override
     public void fieldChanged(int index,
-                             ItemController.FieldName fieldName,
+                             FormView.FieldName fieldName,
                              String value) {
 
         switch (fieldName) {
@@ -42,30 +43,38 @@ public class MyGenericListViewController
         }
     }
 
+    /**
+     * Implements {@link ItemController.ControlActionListener}.
+     * @param index the index of the object in the model
+     */
     @Override
-    public void addMember(int index) {
-        useCase.addMember(index);
+    public void addMembership(int index) {
+        useCase.addMembership(index);
     }
 
+    /**
+     * Implements {@link ItemController.ControlActionListener}.
+     * @param index the index of the object in the model
+     */
     @Override
-    public void removeMember(int index) {
-        useCase.removeMember(index);
+    public void removeMembership(int index) {
+        useCase.removeMembership(index);
     }
 
+    /**
+     * Implements {@link ItemController.ControlActionListener}.
+     * @param index the index of the object in the model
+     */
     @Override
-    public void deleteRecord(int index) {
+    public void deleteModel(int index) {
         useCase.deleteModel(index);
     }
 
-    public void createNewRecord() {
-        useCase.insertModel(new MyModel());
-    }
-
-    public UseCase getUseCase() {
+    public UseCaseObservableList getUseCase() {
         return useCase;
     }
 
     public AbstractGenericListView getView() {
         return listView;
     }
-}
+  }

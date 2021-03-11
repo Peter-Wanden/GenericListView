@@ -1,7 +1,6 @@
-package main.listview;
+package listview;
 
-import main.itemview.ItemView;
-import main.itemview.ModelListener;
+import ui.itemview.ItemView;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -20,6 +19,10 @@ public abstract class AbstractGenericListView
     private static final String TAG = "AbstractGenericListView" + ": ";
 
     private static final String COLUMN_NAME = "COLUMN_NAME";
+    private static final int COLUMN_NUMBER = 0;
+
+    // The index of the model either being edited, or was last edited in the view.
+    protected int lastEditedIndex;
 
     /**
      * Holds the view in a table cell. It is used by both the {@link Renderer}
@@ -121,9 +124,9 @@ public abstract class AbstractGenericListView
     }
 
     /**
-     * When a cell is selected this class returns a view for editing the data.
+     * When a cell is selected this class renders the view for editing the data.
      * When the cell looses focus; the return key pressed, or another cell
-     * clicked for example; the {@link Renderer} returns a view to display
+     * clicked, for example; the {@link Renderer} returns a view to display
      * the data.
      */
     private class Editor
@@ -142,7 +145,7 @@ public abstract class AbstractGenericListView
                                                      int column) {
 
 //            System.out.println(TAG + "getTableCellEditorComponent: editing model=" + value);
-
+            lastEditedIndex = row;
             viewHolder = onCreateViewHolder(row);
             return viewHolder.getView();
         }
@@ -179,7 +182,7 @@ public abstract class AbstractGenericListView
 
         @Override
         public int getColumnCount() {
-            return 1;
+            return COLUMN_NUMBER + 1;
         }
 
         @Override
@@ -216,9 +219,6 @@ public abstract class AbstractGenericListView
                                int rowIndex,
                                int columnIndex) {
 
-//            System.out.println(TAG + "setValueAt: edited model=" + model);
-            // todo, where does it get it's value from?
-            //  This is the value returned by the {@link Editor} I think.
             AbstractGenericListView.this.setValueAt(rowIndex, model);
         }
     }
@@ -264,25 +264,12 @@ public abstract class AbstractGenericListView
                                        Object value
     );
 
-    protected abstract void valueChanged(int position, Object value);
-
     /**
      * Access to the root view of this {@link AbstractGenericListView} component
      * @return an {@link JScrollPane} containing the view.
      */
     public JScrollPane getView() {
         return view;
-    }
-
-    /**
-     * Delegate method that informs the table model of a change in the source data.
-     * Implements {@link ModelListener#notifyItemUpdated(int)}
-     * @param index the index of the item in the source data
-     */
-    @Override
-    public void notifyItemUpdated(int index) {
-        genericTableModel.fireTableCellUpdated(index, 0);
-//        System.out.println(TAG + "notifyItemUpdated=" + getValueAt(index));
     }
 
     /**
@@ -296,25 +283,67 @@ public abstract class AbstractGenericListView
     }
 
     /**
-     * Delegate method that informs the table model of a change in the source data.
-     * Implements {@link ModelListener#notifyItemDeleted(int)}
-     * @param index the index of the item in the source data
+     * Delegate method that informs the table model the table structure has changed.
      */
     @Override
-    public void notifyItemDeleted(int index) {
-//        System.out.println(TAG + "notifyItemDeleted: model=" + genericTableModel.getValueAt(index, 0));
-        genericTableModel.fireTableRowsDeleted(index, index);
+    public void notifyDataStructureChanged() {
+        genericTableModel.fireTableStructureChanged();
     }
 
     /**
      * Delegate method that informs the table model of a change in the source data.
-     * Implements {@link ModelListener#notifyItemInserted(int)}
+     * Implements {@link ModelListener#notifyItemsInserted(int, int)}
      * @param index the index of the item in the source data
      */
     @Override
-    public void notifyItemInserted(int index) {
+    public void notifyItemsInserted(int firstRow, int lastRow) {
 //        System.out.println(TAG + "notifyItemInserted");
-        genericTableModel.fireTableRowsInserted(index, index);
+        genericTableModel.fireTableRowsInserted(firstRow, lastRow);
+    }
+
+    /**
+     * Delegate method that informs the table model of a change in the source data.
+     * Implements {@link ModelListener#notifyItemsUpdated(int,int)}
+     * @param index the index of the item in the source data
+     */
+    @Override
+    public void notifyItemsUpdated(int firstRow,
+                                   int lastRow) {
+
+        // if the view being edited contains the model being updated the changes
+        // to any components that derrive their values from the edited values
+        // will not get updated until the editing stops.
+        if (firstRow == lastEditedIndex) {
+            System.out.println(TAG + "notifyItemUpdated: model being updated is model being edited");
+        }
+
+        System.out.println(TAG + "notifyItemUpdated=" + getValueAt(firstRow));
+
+        genericTableModel.fireTableCellUpdated(firstRow, lastRow);
+    }
+
+    /**
+     * Delegate method that informs the table model of a single item has been
+     * updated in the source data.
+     * Implements {@link ModelListener#notifyItemsUpdated(int,int)}
+     * @param index the index of the item in the source data
+     */
+    @Override
+    public void notifyItemUpdated(int row) {
+        genericTableModel.fireTableCellUpdated(row, COLUMN_NUMBER);
+    }
+
+    /**
+     * Delegate method that informs the table model of a change in the source data.
+     * Implements {@link ModelListener#notifyItemsDeleted(int,int)}
+     * @param index the index of the item in the source data
+     */
+    @Override
+    public void notifyItemsDeleted(int firstRow, int lastRow) {
+        System.out.println(TAG + "notifyItemsDeleted: " +
+                        "\n firstRow=" + firstRow +
+                        "\n lastRow=" + lastRow);
+        genericTableModel.fireTableRowsDeleted(firstRow, lastRow);
     }
 
     /**
@@ -325,9 +354,10 @@ public abstract class AbstractGenericListView
     @Override
     public void tableChanged(TableModelEvent e) {
         int row = e.getFirstRow();
-        int column = 0; // we only have one column
-        Object model = genericTableModel.getValueAt(row, column);
-//        System.out.println(TAG + "tableChanged. Implements TableModelListener: Model=" + model);
-        valueChanged(row, model);
+        System.out.println(TAG + "tableChanged. TableModelEvent=" + e.getType());
+        if (TableModelEvent.DELETE == e.getType()) {
+            System.out.println("tableChanged, revalidating table");
+//          table.revalidate()
+        }
     }
 }
