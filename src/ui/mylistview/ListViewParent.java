@@ -1,6 +1,6 @@
 package ui.mylistview;
 
-import listview.AbstractGenericListView;
+import genericlistview.AbstractGenericListView;
 import utils.UiUtils;
 
 import javax.swing.*;
@@ -66,7 +66,7 @@ public class ListViewParent {
         frame.setUndecorated(true);
         frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocation(frameSize.width / 2, 0);
+        frame.setLocation(frameSize.width * 2, 0);
         frame.pack();
         frame.setVisible(true);
     }

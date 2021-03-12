@@ -2,6 +2,7 @@ package ui.itemview;
 
 import data.MyModel;
 import ui.mylistview.MyGenericListViewController;
+import utils.TextListener;
 
 import javax.swing.text.JTextComponent;
 import java.awt.event.ActionEvent;

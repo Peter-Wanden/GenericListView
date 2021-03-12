@@ -39,8 +39,9 @@ public class Main {
     private void setupRightFrame(Component leftFrame) {
         Point leftFrameLocation = leftFrame.getLocation();
         Point rightFrameLocation = new Point(
-                leftFrameLocation.x + leftFrame.getWidth(),
-                leftFrameLocation.y);
+                (leftFrameLocation.x + leftFrame.getWidth()),
+                leftFrameLocation.y
+        );
 
         JFrame rightFrame = new JFrame();
         rightFrame.getContentPane().add(dataView.getView());

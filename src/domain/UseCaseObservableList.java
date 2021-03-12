@@ -1,11 +1,8 @@
 package domain;
 
 import data.MyModel;
-import listview.ModelListener;
-import org.w3c.dom.Document;
+import genericlistview.ModelListener;
 
-import javax.swing.event.DocumentListener;
-import javax.swing.text.AbstractDocument;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

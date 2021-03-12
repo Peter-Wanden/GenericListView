@@ -1,4 +1,4 @@
-package listview;
+package genericlistview;
 
 /**
  * An abstract adapter class for receiving {@link ModelListener} events.

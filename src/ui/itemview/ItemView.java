@@ -3,6 +3,7 @@ package ui.itemview;
 import data.MyModel;
 import ui.itemview.ItemController.ControlCommand;
 import utils.RoundedPanel;
+import utils.TextListener;
 
 import javax.swing.*;
 

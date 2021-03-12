@@ -1,4 +1,4 @@
-package listview;
+package genericlistview;
 
 /**
  * This interface is implemented by {@link AbstractGenericListView}.

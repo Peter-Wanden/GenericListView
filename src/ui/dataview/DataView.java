@@ -2,7 +2,7 @@ package ui.dataview;
 
 import data.MyModel;
 import domain.UseCaseObservableList;
-import listview.ModelListener;
+import genericlistview.ModelListener;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;

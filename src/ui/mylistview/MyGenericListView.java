@@ -1,6 +1,6 @@
 package ui.mylistview;
 
-import listview.AbstractGenericListView;
+import genericlistview.AbstractGenericListView;
 import data.MyModel;
 import domain.UseCaseObservableList;
 import ui.itemview.ItemController;
@@ -23,10 +23,10 @@ public class MyGenericListView
     }
 
     /**
-     * Called each time a {@link listview.AbstractGenericListView.ViewHolder} is created,
+     * Called each time a {@link genericlistview.AbstractGenericListView.ViewHolder} is created,
      * whether for editing or displaying data.
      * @param position of the data in the models provided list.
-     * @return a {@link listview.AbstractGenericListView.ViewHolder} containing the view.
+     * @return a {@link genericlistview.AbstractGenericListView.ViewHolder} containing the view.
      */
     @Override
     protected ViewHolder onCreateViewHolder(int position) {
@@ -44,7 +44,7 @@ public class MyGenericListView
         ItemView view = itemController.getView();
         // register model listeners
 
-        System.out.println(TAG + "onCreateViewHolder");
+        System.out.println(TAG + "onCreateViewHolder: position=" + position);
 
 
         return new MyViewHolder(
@@ -65,18 +65,19 @@ public class MyGenericListView
     protected Object getValueAt(int position) {
         int size = useCase.getItemCount();
 
-        // edge case: there are no elements in the list
+        // edge case: There are no elements in the list
+        // Return an empty object.
         if (useCase.getModels().isEmpty()) {
             return new Object();
         }
 
-        // edge case: the last element has been deleted.
+        // edge case: The last element has been deleted.
         // Return the new index of the last element.
         if (position >= size) {
             position = size -1;
         }
 
-        System.out.println(TAG + "getValueAt: position=" + position);
+//        System.out.println(TAG + "getValueAt: position=" + position);
         return useCase.getModels().get(position);
     }
 
@@ -93,8 +94,10 @@ public class MyGenericListView
 
         MyModel updatedModel = (MyModel) model;
         useCase.updateModel(position, updatedModel);
-        System.out.println(TAG + "setValueAt:" +
-                " updatedModel=" + updatedModel);
+
+        System.out.println(
+                TAG + "setValueAt:" + " updatedModel=" + updatedModel
+        );
     }
 
     @Override
