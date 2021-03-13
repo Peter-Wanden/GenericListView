@@ -9,13 +9,11 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-@SuppressWarnings("All")
 public abstract class AbstractGenericListView
         implements
         ModelListener,
         TableModelListener {
 
-    @SuppressWarnings("unused")
     private static final String TAG = "AbstractGenericListView" + ": ";
 
     /**
@@ -44,9 +42,6 @@ public abstract class AbstractGenericListView
                           Component view,
                           Object controller) {
 
-//            System.out.println(TAG + "ViewHolder constructor initialised at position: " + position +
-//                    " with model: " + model);
-
             this.position = position;
 
             if (view == null) {
@@ -61,7 +56,7 @@ public abstract class AbstractGenericListView
             this.view = view;
         }
 
-        // todo, implement the difference between position and index where:
+        // TODO: implement the difference between position and index where:
         //  index - is the index in the model list
         //  position - is the position as displayed in the list.
         public int getPosition() {
@@ -80,7 +75,7 @@ public abstract class AbstractGenericListView
         /**
          * The model passed into the {@link ViewHolder}. If this view
          * holder has been rendered by the {@link Editor} and data within
-         * the view has been edited, you should collect it and return it
+         * the view has been edited, you should collect and return it
          * with this method.
          *
          * @return either the model passed into the view or a model updated
@@ -101,10 +96,6 @@ public abstract class AbstractGenericListView
 
         private static final String TAG = "Renderer" + ": ";
 
-        private Renderer() {
-            super();
-        }
-
         @Override
         public Component getTableCellRendererComponent(JTable table,
                                                        Object model,
@@ -115,6 +106,12 @@ public abstract class AbstractGenericListView
 
             ViewHolder viewHolder = onCreateViewHolder(row);
             Component view = viewHolder.view;
+            setViewHeight(view);
+
+            return view;
+        }
+
+        private void setViewHeight(Component view) {
 
             int rowHeight = table.getRowHeight();
             int requiredHeight = view.getPreferredSize().height +
@@ -123,16 +120,12 @@ public abstract class AbstractGenericListView
             if (rowHeight < requiredHeight) {
                 table.setRowHeight(requiredHeight);
             }
-
-            return view;
         }
     }
 
     /**
-     * When a cell is selected this class renders the view for editing the data.
-     * When the cell looses focus; the return key pressed, or another cell
-     * clicked, for example; the {@link Renderer} returns a view to display
-     * the data.
+     * When a cell is selected this class renders the view for editing the data
+     * model.
      */
     private class Editor
             extends AbstractCellEditor
@@ -149,28 +142,24 @@ public abstract class AbstractGenericListView
                                                      int row,
                                                      int column) {
 
-//            System.out.println(TAG + "getTableCellEditorComponent: editing model=" + value);
-            lastEditedIndex = row;
             viewHolder = onCreateViewHolder(row);
             return viewHolder.getView();
         }
 
         /**
          * When editing of the cell is complete, i.e when {@link JTable#editingStopped(ChangeEvent)}
-         * method is triggered it calls this method to get the edited values.
-         * So this is where you get the edited values from your view in the current instance the view holder.
+         * method is triggered, it calls this method to get the edited values.
+         * So this is where you get the edited values from your view in the current instance
+         * the {@link ViewHolder}.
          *
          * @return the model values in the view
          */
         @Override
         public Object getCellEditorValue() {
-//            System.out.println(TAG + "getCellEditorValue(), returns the viewHolders model=" + viewHolder.getModel());
             return viewHolder.getModel();
         }
     }
 
-    // todo, table is refreshing data on every event. You read about this. Take a look at
-    //  default table model to see how this is resolved.
     private class GenericTableModel
             extends AbstractTableModel {
 
@@ -233,9 +222,6 @@ public abstract class AbstractGenericListView
     private static final String COLUMN_NAME = "COLUMN_NAME";
     private static final int COLUMN_NUMBER = 0;
 
-    // The index of the model either being edited, or was last edited in the view.
-    protected int lastEditedIndex;
-
     private final JTable table;
     private final AbstractTableModel tableModel;
     private final JScrollPane view;
@@ -250,14 +236,9 @@ public abstract class AbstractGenericListView
         addListeners();
     }
 
-    private void addListeners() {
-        tableModel.addTableModelListener(this);
-    }
-
     private void setupTable() {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setIntercellSpacing(new Dimension(5, 5));
-//        table.setRowHeight(ItemView.CELL_HEIGHT); // todo, change to ViewHolder.getView().getPreferredSize().getHeight()
         table.setModel(tableModel);
         table.setFillsViewportHeight(true);
         table.setTableHeader(null);
@@ -268,19 +249,46 @@ public abstract class AbstractGenericListView
         table.setDefaultEditor(ViewHolder.class, new Editor());
     }
 
+    private void addListeners() {
+        tableModel.addTableModelListener(this);
+    }
+
+    /**
+     * Implementers should place their view into the ViewHolder.
+     * The view holder is used by both the renderer and editor
+     * for displaying views.
+     * @param position the index of the item model in your data.
+     * @return your ViewHolder concrete class with your view.
+     */
     protected abstract ViewHolder onCreateViewHolder(int position);
 
+    /**
+     * Called by the list model (TableModel) while rendering views.
+     * @param position the index of the item in the supplied data.
+     * @return returns the data model representing the index.
+     */
     protected abstract Object getValueAt(int position);
 
+    /**
+     * Informs the table model of the amount of items in the data
+     * @return the number of data models in your list.
+     */
     protected abstract int getItemCount();
 
+    /**
+     * Called when editing stops. Passes the value of the object
+     * collected by the {@link Editor#getCellEditorValue}. This
+     * is generally an updated data model
+     * @param position the index of the data model being edited.
+     * @param value the edited value of the data model as provided by
+     *              {@link Editor#getCellEditorValue()}.
+     */
     protected abstract void setValueAt(int position,
                                        Object value
     );
 
     /**
-     * Access to the root view of this {@link AbstractGenericListView} component
-     *
+     * Access to the root view of this {@link AbstractGenericListView} component.
      * @return an {@link JScrollPane} containing the view.
      */
     public JScrollPane getView() {
@@ -293,7 +301,6 @@ public abstract class AbstractGenericListView
      */
     @Override
     public void notifyDataSetChanged() {
-//        System.out.println(TAG + "notifyDatasetChanged");
         tableModel.fireTableDataChanged();
     }
 
@@ -309,11 +316,11 @@ public abstract class AbstractGenericListView
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsInserted(int, int)}
      *
-     * @param index the index of the item in the source data
+     * @param firstRow the inclusive index of the first row of data inserted.
+     * @param lastRow  the inclusive index of the last row of data inserted.
      */
     @Override
     public void notifyItemsInserted(int firstRow, int lastRow) {
-//        System.out.println(TAG + "notifyItemInserted");
         tableModel.fireTableRowsInserted(firstRow, lastRow);
     }
 
@@ -321,21 +328,12 @@ public abstract class AbstractGenericListView
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
-     * @param index the index of the item in the source data
+     * @param firstRow the inclusive index of the first item in the source data to be updated.
+     * @param lastRow  the inclusive index of the last item in the source data to be updated.
      */
     @Override
     public void notifyItemsUpdated(int firstRow,
                                    int lastRow) {
-
-        // if the view being edited contains the model being updated the changes
-        // to any components that derrive their values from the edited values
-        // will not get updated until the editing stops.
-        if (firstRow == lastEditedIndex) {
-            System.out.println(TAG + "notifyItemUpdated: model being updated is model being edited");
-        }
-
-        System.out.println(TAG + "notifyItemUpdated=" + getValueAt(firstRow));
-
         tableModel.fireTableCellUpdated(firstRow, lastRow);
     }
 
@@ -344,25 +342,22 @@ public abstract class AbstractGenericListView
      * updated in the source data.
      * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
-     * @param index the index of the item in the source data
+     * @param position the index of the updated item in the source data
      */
     @Override
-    public void notifyItemUpdated(int row) {
-        tableModel.fireTableCellUpdated(row, COLUMN_NUMBER);
+    public void notifyItemUpdated(int position) {
+        tableModel.fireTableCellUpdated(position, COLUMN_NUMBER);
     }
 
     /**
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsDeleted(int, int)}
      *
-     * @param index the index of the item in the source data
+     * @param firstRow the inclusive index of the first row in the source data to be deleted.
+     * @param lastRow  the inclusive index of the last row in the source data to be deleted
      */
     @Override
     public void notifyItemsDeleted(int firstRow, int lastRow) {
-        System.out.println(TAG + "notifyItemsDeleted: " +
-                "\n firstRow=" + firstRow +
-                "\n lastRow=" + lastRow +
-                "\n isEditing=" + table.isEditing());
         tableModel.fireTableRowsDeleted(firstRow, lastRow);
 
     }
@@ -377,12 +372,32 @@ public abstract class AbstractGenericListView
     public void tableChanged(TableModelEvent e) {
 
         if (TableModelEvent.DELETE == e.getType()) {
-            // If part or parts of the table are being deleted, editing must stop.
+            // If the cell or cells being edited are within the range of the cells that have
+            // been been changed, as declared in the table event, then editing must either
+            // be cancelled or stopped.
             if (table.isEditing()) {
                 TableCellEditor editor = table.getDefaultEditor(ViewHolder.class);
-                if (editor != null)
-//                    editor.stopCellEditing();
-                    table.removeEditor();
+                if (editor != null) {
+                    // the coordinate of the cell being edited.
+                    int editingColumn = table.getEditingColumn();
+                    int editingRow = table.getEditingRow();
+
+                    // the inclusive coordinates of the cells that have changed.
+                    int changedColumn = e.getColumn();
+                    int firstRowChanged = e.getFirstRow();
+                    int lastRowChanged = e.getLastRow();
+
+                    // returns true if the cell being edited is in the range of cells changed
+                    boolean editingCellInRangeOfChangedCells =
+                            (TableModelEvent.ALL_COLUMNS == changedColumn ||
+                                    changedColumn == editingColumn) &&
+                                    editingRow >= firstRowChanged &&
+                                    editingRow <= lastRowChanged;
+
+                    if (editingCellInRangeOfChangedCells) {
+                        editor.cancelCellEditing();
+                    }
+                }
             }
         }
     }

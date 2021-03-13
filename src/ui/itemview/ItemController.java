@@ -47,7 +47,7 @@ public class ItemController
     private final List<ControlActionListener> controlActionListeners;
 
     private final MyGenericListViewController parentController;
-    private final ItemView view;
+    private final ItemViewImpl view;
     private final int index;
 
     public ItemController(MyGenericListViewController parentController,
@@ -59,7 +59,7 @@ public class ItemController
         this.parentController = parentController;
         this.index = index;
 
-        view = new ItemView(this);
+        view = new ItemViewImpl(this);
         view.createView();
 
         addFieldChangedListener(parentController);

@@ -36,9 +36,8 @@ public class ListViewParent {
 
 
         JPanel basePanel = new JPanel();
-        basePanel.setLayout(
-                new BoxLayout(
-                        basePanel, BoxLayout.PAGE_AXIS)
+        basePanel.setLayout(new BoxLayout(
+                basePanel, BoxLayout.PAGE_AXIS)
         );
 
         JButton addNewMemberButton = new JButton("+");
@@ -78,7 +77,9 @@ public class ListViewParent {
             public void componentResized(ComponentEvent e) {
                 Dimension parentSize = frame.getSize();
                 layeredPane.setSize(parentSize);
-                listView.getView().setSize(parentSize);
+                Dimension listViewSize = new Dimension(
+                        parentSize.width, parentSize.height - 200);
+                listView.getView().setSize(listViewSize);
 
                 for (Component component : layeredPane.getComponents()) {
 
@@ -117,4 +118,4 @@ public class ListViewParent {
     public JFrame getView() {
         return frame;
     }
- }
+}

@@ -25,27 +25,16 @@ public class MyGenericListView
     /**
      * Called each time a {@link genericlistview.AbstractGenericListView.ViewHolder} is created,
      * whether for editing or displaying data.
-     * @param position of the data in the models provided list.
+     * @param position the index of item in the supplied data.
      * @return a {@link genericlistview.AbstractGenericListView.ViewHolder} containing the view.
      */
     @Override
     protected ViewHolder onCreateViewHolder(int position) {
 
-        // TODO - ADD MODEL LISTENERS HERE TO ENSURE THE MODEL IS BEING LISTENED TO
-        //  WHILE IT IS BEING EDITED!
-//
-//        System.out.println(TAG + "onCreateViewHolder:" + " position:" + position +
-//                " currently working with model at index=" + lastEditedIndex);
-
         ItemController itemController = new ItemController(listViewController, position);
         itemController.getView().bindModel(
                 listViewController.getUseCase().getModels().get(position)
         );
-        ItemView view = itemController.getView();
-        // register model listeners
-
-        System.out.println(TAG + "onCreateViewHolder: position=" + position);
-
 
         return new MyViewHolder(
                 position,
