@@ -1,6 +1,9 @@
 package ui.itemview;
 
 import data.MyModel;
+import domain.FieldChangedListener;
+import domain.UseCaseObservableList;
+import domain.UseCaseObservableList.FieldName;
 import ui.mylistview.MyGenericListViewController;
 import utils.TextListener;
 
@@ -9,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import static ui.mylistview.MyGenericListViewController.ControlCommand;
 
 /**
  * ItemController reports on all changes within the view.
@@ -20,55 +25,43 @@ public class ItemController
         ActionListener,
         TextListener.TextChangedListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "ItemController" + ": ";
 
-    public enum ControlCommand {
-        ADD_MEMBER_COMMAND,
-        REMOVE_MEMBER_COMMAND,
-        DELETE_RECORD_COMMAND
-    }
-
-    public interface FieldChangedListener {
-        void fieldChanged(int index,
-                          FormView.FieldName fieldName,
-                          String value
-        );
-    }
-
-    public interface ControlActionListener {
-        void addMembership(int index);
-
-        void removeMembership(int index);
-
-        void deleteModel(int index);
-    }
-
     private final List<FieldChangedListener> fieldChangedListeners;
-    private final List<ControlActionListener> controlActionListeners;
 
-    private final MyGenericListViewController parentController;
-    private final ItemViewImpl view;
+    private final MyGenericListViewController listViewController;
+    private final ItemView view;
     private final int index;
 
-    public ItemController(MyGenericListViewController parentController,
+    public ItemController(final MyGenericListViewController listViewController,
+                          final UseCaseObservableList useCase,
                           final int index) {
 
         fieldChangedListeners = new ArrayList<>();
-        controlActionListeners = new ArrayList<>();
 
-        this.parentController = parentController;
+        this.listViewController = listViewController;
         this.index = index;
 
-        view = new ItemViewImpl(this);
-        view.createView();
+        view = new ItemViewImpl(this, useCase);
+        ((ItemViewImpl) view).createView();
 
-        addFieldChangedListener(parentController);
-        addControlActionListener(parentController);
+        addFieldChangedListener(listViewController);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        notifyControlActionListeners(e.getActionCommand());
+        String command = e.getActionCommand();
+
+        if (ControlCommand.ADD_AS_MEMBER_COMMAND.name().equals(command)) {
+            listViewController.addMembership(index);
+        }
+        else if (ControlCommand.REMOVE_MEMBER_COMMAND.name().equals(command)) {
+            listViewController.removeMembership(index);
+        }
+        else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
+            listViewController.deleteModel(index);
+        }
     }
 
     @Override
@@ -77,13 +70,16 @@ public class ItemController
         String newText = source.getText();
         String componentName = source.getName();
 
-        if (FormView.FieldName.FIRST_NAME.name().equals(componentName)) {
-            notifyFieldChangedListeners(FormView.FieldName.FIRST_NAME, newText);
-        } else if (FormView.FieldName.LAST_NAME.name().equals(componentName)) {
-            notifyFieldChangedListeners(FormView.FieldName.LAST_NAME, newText);
-        } else if (FormView.FieldName.AGE.name().equals(componentName)) {
-            notifyFieldChangedListeners(FormView.FieldName.AGE, newText);
-        } else {
+        if (FieldName.FIRST_NAME.name().equals(componentName)) {
+            notifyFieldChangedListeners(FieldName.FIRST_NAME, newText);
+        }
+        else if (FieldName.LAST_NAME.name().equals(componentName)) {
+            notifyFieldChangedListeners(FieldName.LAST_NAME, newText);
+        }
+        else if (FieldName.AGE.name().equals(componentName)) {
+            notifyFieldChangedListeners(FieldName.AGE, newText);
+        }
+        else {
             throw new UnsupportedOperationException(
                     "Source: " + source + " unknown for text: " + newText
             );
@@ -98,7 +94,7 @@ public class ItemController
         fieldChangedListeners.remove(listener);
     }
 
-    private void notifyFieldChangedListeners(FormView.FieldName fieldName,
+    private void notifyFieldChangedListeners(FieldName fieldName,
                                              String value) {
 
         fieldChangedListeners.forEach(listener ->
@@ -106,23 +102,11 @@ public class ItemController
         );
     }
 
-    public void addControlActionListener(ControlActionListener listener) {
-        controlActionListeners.add(listener);
-    }
 
-    public void removeControlActionListener(ControlActionListener listener) {
-        controlActionListeners.remove(listener);
-    }
+//        if (ControlCommand.ADD_MEMBER_COMMAND.name().equals(actionCommand)) {
+//            controlActionListeners.forEach(listener -> listener.addMembership(index));
+//        }
 
-    private void notifyControlActionListeners(String actionCommand) {
-        if (ControlCommand.ADD_MEMBER_COMMAND.name().equals(actionCommand)) {
-            controlActionListeners.forEach(listener -> listener.addMembership(index));
-        } else if (ControlCommand.REMOVE_MEMBER_COMMAND.name().equals(actionCommand)) {
-            controlActionListeners.forEach(listener -> listener.removeMembership(index));
-        } else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(actionCommand)) {
-            controlActionListeners.forEach(listener -> listener.deleteModel(index));
-        }
-    }
 
     public ItemView getView() {
         return view;
@@ -135,7 +119,7 @@ public class ItemController
      * @return the model who's values are the current values in the view.
      */
     public MyModel getModel() {
-        return view.getModel();
+        return (MyModel) view.getModel();
     }
 
     public int getIndex() {

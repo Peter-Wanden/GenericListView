@@ -1,13 +1,14 @@
 package ui.itemview;
 
-import data.MyModel;
-
-import javax.swing.*;
+import java.awt.*;
 
 public interface ItemView {
-    MyModel getModel();
 
-    void bindModel(MyModel myModel);
+    int getIndex();
 
-    JPanel getView();
+    Object getModel();
+
+    void bindModel(Object myModel);
+
+    Component getView();
 }

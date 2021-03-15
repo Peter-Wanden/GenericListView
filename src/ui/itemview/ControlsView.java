@@ -4,8 +4,6 @@ import javax.swing.*;
 
 public class ControlsView {
 
-    static final int PREFERRED_HEIGHT = 50;
-
     private final JPanel view;
     private final JCheckBox isMemberCheckBox;
     private final JButton

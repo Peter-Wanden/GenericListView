@@ -1,5 +1,7 @@
 package genericlistview;
 
+import ui.itemview.ItemView;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
@@ -14,35 +16,38 @@ public abstract class AbstractGenericListView
         ModelListener,
         TableModelListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "AbstractGenericListView" + ": ";
 
     /**
      * Holds the view in a table cell. It is used by both the {@link Renderer}
      * and {@link Editor} as a generic wrapper for the view.
      */
-    public static abstract class ViewHolder {
+    public static abstract class ViewHolder
+            implements ItemView {
 
+        @SuppressWarnings("unused")
         private static final String TAG = "ViewHolder" + ": ";
 
-        // the position (index) of the model data in the model list
-        protected final int position;
+        // the index of the model data in the model list
+        protected final int index;
         // the model
         protected Object model;
         // the view to be rendered
         protected final Component view;
-        // the views controller
+        // the (optional) controller;
         protected final Object controller;
 
         /**
-         * @param view     the view to be rendered
-         * @param position the position (index) of the data
+         * @param view     the view to be rendered.
+         * @param index the index of the model in the source data.
          */
-        public ViewHolder(int position,
+        public ViewHolder(int index,
                           Object model,
                           Component view,
                           Object controller) {
 
-            this.position = position;
+            this.index = index;
 
             if (view == null) {
                 throw new IllegalArgumentException("item view may not be null");
@@ -50,17 +55,17 @@ public abstract class AbstractGenericListView
             if (model == null) {
                 throw new IllegalArgumentException("model may not be null");
             }
-
-            this.controller = controller;
             this.model = model;
             this.view = view;
+            this.controller = controller;
         }
 
         // TODO: implement the difference between position and index where:
         //  index - is the index in the model list
         //  position - is the position as displayed in the list.
-        public int getPosition() {
-            return position;
+        @Override
+        public int getIndex() {
+            return index;
         }
 
         /**
@@ -68,6 +73,7 @@ public abstract class AbstractGenericListView
          *
          * @return the view to be rendered.
          */
+        @Override
         public Component getView() {
             return view;
         }
@@ -81,6 +87,7 @@ public abstract class AbstractGenericListView
          * @return either the model passed into the view or a model updated
          * within the view, post editing.
          */
+        @Override
         public abstract Object getModel();
 
         public Object getController() {
@@ -257,17 +264,17 @@ public abstract class AbstractGenericListView
      * Implementers should place their view into the ViewHolder.
      * The view holder is used by both the renderer and editor
      * for displaying views.
-     * @param position the index of the item model in your data.
+     * @param index the index of the item model in the source data.
      * @return your ViewHolder concrete class with your view.
      */
-    protected abstract ViewHolder onCreateViewHolder(int position);
+    protected abstract ViewHolder onCreateViewHolder(final int index);
 
     /**
      * Called by the list model (TableModel) while rendering views.
-     * @param position the index of the item in the supplied data.
+     * @param index the index of the item in the supplied data.
      * @return returns the data model representing the index.
      */
-    protected abstract Object getValueAt(int position);
+    protected abstract Object getValueAt(int index);
 
     /**
      * Informs the table model of the amount of items in the data
@@ -279,11 +286,11 @@ public abstract class AbstractGenericListView
      * Called when editing stops. Passes the value of the object
      * collected by the {@link Editor#getCellEditorValue}. This
      * is generally an updated data model
-     * @param position the index of the data model being edited.
+     * @param index the index of the data model being edited.
      * @param value the edited value of the data model as provided by
      *              {@link Editor#getCellEditorValue()}.
      */
-    protected abstract void setValueAt(int position,
+    protected abstract void setValueAt(int index,
                                        Object value
     );
 
@@ -342,11 +349,11 @@ public abstract class AbstractGenericListView
      * updated in the source data.
      * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
-     * @param position the index of the updated item in the source data
+     * @param index the index of the updated item in the source data
      */
     @Override
-    public void notifyItemUpdated(int position) {
-        tableModel.fireTableCellUpdated(position, COLUMN_NUMBER);
+    public void notifyItemUpdated(int index) {
+        tableModel.fireTableCellUpdated(index, COLUMN_NUMBER);
     }
 
     /**

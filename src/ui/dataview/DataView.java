@@ -10,6 +10,9 @@ import javax.swing.table.AbstractTableModel;
 public class DataView
         implements ModelListener {
 
+    @SuppressWarnings("unused")
+    private static final String TAG = "DataView";
+
     static final String[] columnNames = {
             "First name",
             "Last name",

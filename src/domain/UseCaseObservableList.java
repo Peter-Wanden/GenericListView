@@ -10,20 +10,56 @@ import java.util.List;
 /**
  * Represents a single source of truth for the data models.
  */
-public class UseCaseObservableList {
+public class UseCaseObservableList
+        implements
+        ModelListener,
+        FieldChangedListener {
 
     private static final String TAG = "UseCaseObservableList" + ": ";
 
+    /**
+     * Used by components to identify data fields/components etc. in the
+     * model that this use case can handle.
+     */
+    public enum FieldName {
+        FIRST_NAME,
+        LAST_NAME,
+        AGE
+    }
+
+    // a list of listeners interested to changes to the models
     private final List<ModelListener> modelListeners;
+    // the source data
     private final List<MyModel> models = new ArrayList<>();
 
     public UseCaseObservableList() {
         modelListeners = new ArrayList<>();
     }
 
-    //region update member
-    public void firstNameFieldChanged(int index,
-                                      String firstName) {
+    //region update model
+
+    /**
+     * Implements {@link FieldChangedListener}. An incoming change to a
+     * to a field in a model has occurred.
+     *
+     * @param index     the index of the data model in the source data.
+     * @param fieldName the {@link FieldName} assigned to the field.
+     * @param value     the updated value of the field.
+     */
+    @Override
+    public void fieldChanged(int index,
+                             FieldName fieldName,
+                             Object value) {
+
+        switch (fieldName) {
+            case FIRST_NAME -> firstNameFieldChanged(index, (String) value);
+            case LAST_NAME -> lastNameChanged(index, (String) value);
+            case AGE -> ageChanged(index, (String) value);
+        }
+    }
+
+    private void firstNameFieldChanged(int index,
+                                       String firstName) {
 
         MyModel oldModel = models.get(index);
         boolean firstNameChanged = !oldModel.getFirstName().equals(firstName);
@@ -40,8 +76,8 @@ public class UseCaseObservableList {
         }
     }
 
-    public void lastNameChanged(int index,
-                                String lastName) {
+    private void lastNameChanged(int index,
+                                 String lastName) {
 
         MyModel oldModel = models.get(index);
         boolean lastNameChanged = !oldModel.getLastName().equals(lastName);
@@ -58,8 +94,8 @@ public class UseCaseObservableList {
         }
     }
 
-    public void ageChanged(int index,
-                           String age) {
+    private void ageChanged(int index,
+                            String age) {
 
         MyModel oldModel = models.get(index);
         String oldAge = String.valueOf(oldModel.getAge());
@@ -80,7 +116,7 @@ public class UseCaseObservableList {
     public void addMembership(int index) {
 
         MyModel oldModel = models.get(index);
-        System.out.println(TAG + "addMember: " + " for model:" + oldModel);
+        System.out.println(TAG + "addMembership: " + " for model:" + oldModel);
         boolean addMember = !oldModel.isMember();
 
         if (addMember) {
@@ -100,6 +136,8 @@ public class UseCaseObservableList {
         MyModel oldModel = models.get(index);
         boolean removeMember = oldModel.isMember();
 
+        System.out.println(TAG + "removeMembership: " + " for model:" + oldModel);
+
         if (removeMember) {
             MyModel updatedModel = new MyModel(
                     oldModel.getFirstName(),
@@ -112,6 +150,33 @@ public class UseCaseObservableList {
         }
     }
 
+    /**
+     * <p>
+     * This method is here to be called when 'whole model' editing
+     * is preferred. Whole model editing is where the model is edited
+     * externally, and when complete, the model in it's entirety with
+     * all edits is then set to the use case.
+     * </P>
+     * <p>
+     * This is in stark contrast to field editing, where a change to
+     * any field in the model is reported and a new model updated and
+     * issued to the observers. Field editing methods are:<br>
+     * {@link #firstNameFieldChanged(int, String)}<br>
+     * {@link #lastNameChanged(int, String)}<br>
+     * {@link #ageChanged(int, String)}<br>
+     * {@link #addMembership(int)}<br>
+     * {@link #removeMembership(int)}
+     * etc.
+     * </P>
+     * <p>
+     * Although both methods of editing can be used in unison
+     * it isn't recommended as it may, if setup incorrectly, cause an
+     * infinite loop.
+     * </P>
+     *
+     * @param index        the index of the model to be updated.
+     * @param updatedModel the new model to replace the existing model.
+     */
     public void updateModel(int index,
                             MyModel updatedModel) {
 
@@ -121,6 +186,11 @@ public class UseCaseObservableList {
             MyModel oldModel = models.get(index);
             boolean isChanged = !oldModel.equals(updatedModel);
 
+            /*
+             isChanged is here to prevent infinite loops.
+             For this to work, it is essential for the model to
+             implement equals and hashcode correctly.
+            */
             if (isChanged) {
                 System.out.println(TAG + " updateModel: " +
                         " Model has changed. " + "\n" +
@@ -138,37 +208,34 @@ public class UseCaseObservableList {
         }
     }
 
-    public void notifyItemsUpdated(int firstRow,
-                                   int lastRow) {
+    public void notifyItemsUpdated(int firstIndex,
+                                   int lastIndex) {
 
         System.out.println(TAG + "notifyItemsUpdated:=" +
-                " from:" + models.get(firstRow) +
-                " to:" + lastRow);
+                " from:" + models.get(firstIndex) +
+                " to:" + lastIndex);
+
         modelListeners.forEach(listener ->
-                listener.notifyItemsUpdated(firstRow, lastRow)
+                listener.notifyItemsUpdated(firstIndex, lastIndex)
         );
     }
 
     /**
-     * Implements {@link ModelListener}
+     * Implements {@link ModelListener}. Convenience method for
+     * {@link #notifyItemsUpdated(int, int)}
      */
-    public void notifyItemUpdated(int row) {
-        System.out.println(TAG + "notifyItemUpdated:=" + models.get(row));
-        modelListeners.forEach(modelListener ->
-                modelListener.notifyItemUpdated(row));
+    public void notifyItemUpdated(int index) {
+        notifyItemsUpdated(index, index);
     }
-    // endregion update member
+    // endregion update model
 
     // region insert member
-    public void addNewMember(MyModel model) {
+    public void addNewMember() {
         int index = models.size();
 
-        System.out.println(TAG + "addNewMember: index=" + index +
-                "model=" + model);
+        System.out.println(TAG + "addNewMember: index=" + index);
 
-        models.add(
-                model == null ? new MyModel() : model
-        );
+        models.add(new MyModel());
         notifyItemsInserted(index, index);
     }
 
@@ -180,20 +247,20 @@ public class UseCaseObservableList {
                 " at index=" + index);
 
         this.models.addAll(index, models);
-        notifyItemsInserted(index, index + models.size() -1);
+        notifyItemsInserted(index, index + models.size() - 1);
     }
 
     /**
      * Implements {@link ModelListener}
      */
-    public void notifyItemsInserted(int firstRow,
-                                    int lastRow) {
+    public void notifyItemsInserted(int firstIndex,
+                                    int lastIndex) {
         System.out.println(TAG + "notifyItemsInserted:" +
-                " from index:" + firstRow +
-                " to index:" + lastRow);
+                " from index:" + firstIndex +
+                " to index:" + lastIndex);
 
         modelListeners.forEach(listener ->
-                listener.notifyItemsInserted(firstRow, lastRow)
+                listener.notifyItemsInserted(firstIndex, lastIndex)
         );
     }
     // endregion insert member
@@ -211,8 +278,11 @@ public class UseCaseObservableList {
     /**
      * Implements {@link ModelListener}
      */
-    public void notifyItemsDeleted(int firstRow, int lastRow) {
-        modelListeners.forEach(listener -> listener.notifyItemsDeleted(firstRow, lastRow));
+    public void notifyItemsDeleted(int firstIndex,
+                                   int lastIndex) {
+        modelListeners.forEach(listener ->
+                listener.notifyItemsDeleted(firstIndex, lastIndex)
+        );
     }
     // endregion delete member
 
@@ -223,8 +293,9 @@ public class UseCaseObservableList {
      * performs actions on the underlying observable list. This is because
      * {@link Collections#unmodifiableList} returns a 'window' to the underlying
      * list and blocks any modifiable operations.
+     *
      * @return An unmodifiable set is returned to keep the ability to mutate the list
-     *         within this class.
+     * within this class.
      */
     public List<MyModel> getModels() {
         return Collections.unmodifiableList(models);
@@ -243,6 +314,7 @@ public class UseCaseObservableList {
     /**
      * Implements {@link ModelListener}
      */
+    @Override
     public void notifyDataSetChanged() {
         modelListeners.forEach(ModelListener::notifyDataSetChanged);
     }
@@ -250,6 +322,7 @@ public class UseCaseObservableList {
     /**
      * Implements {@link ModelListener}
      */
+    @Override
     public void notifyDataStructureChanged() {
         modelListeners.forEach(ModelListener::notifyDataStructureChanged);
     }
@@ -257,6 +330,7 @@ public class UseCaseObservableList {
     public void addModelListener(ModelListener listener) {
         modelListeners.add(listener);
     }
+
     public void removeModelListener(ModelListener listener) {
         modelListeners.remove(listener);
     }

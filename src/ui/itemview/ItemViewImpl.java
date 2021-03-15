@@ -1,13 +1,17 @@
 package ui.itemview;
 
 import data.MyModel;
-import ui.itemview.ItemController.ControlCommand;
+import domain.UseCaseObservableList;
+import genericlistview.ModelListenerAdapter;
 import utils.RoundedPanel;
 import utils.TextListener;
 
 import javax.swing.*;
 
+import static ui.mylistview.MyGenericListViewController.*;
+
 public class ItemViewImpl
+        extends ModelListenerAdapter
         implements ItemView {
 
     private static final String TAG = "ItemView" + ": ";
@@ -16,19 +20,26 @@ public class ItemViewImpl
     private final ControlsView controlsView;
     private final JPanel view;
 
+    private final UseCaseObservableList useCase;
     private final ItemController controller;
     private final TextListener[] textListeners = new TextListener[3];
+    private final int index;
 
-    public ItemViewImpl(ItemController controller) {
+    public ItemViewImpl(ItemController controller,
+                        UseCaseObservableList useCase) {
+        super();
 
         view = new RoundedPanel(30);
         view.setOpaque(true);
         controlsView = new ControlsView();
         formView = new FormView();
 
+        this.useCase = useCase;
         this.controller = controller;
+        this.index = controller.getIndex();
 
-        addViewControlListeners();
+        addViewListeners();
+        addModelListeners();
     }
 
     public void createView() {
@@ -44,13 +55,47 @@ public class ItemViewImpl
         view.add(splitPane);
     }
 
-
-    private void addViewControlListeners() {
-        addFormViewListeners();
-        addControlViewComponentListeners();
+    // region model changed listeners
+    /*
+    This section is where the view listens and reacts to changes in the
+    model, which in this case is the use case.
+    */
+    /**
+     * Adds listeners interested in changes to the data model.
+     */
+    private void addModelListeners() {
+        useCase.addModelListener(this);
     }
 
-    private void removeViewControlListeners() {
+    /**
+     * Implements {@link ModelListenerAdapter}'. This item is listening for
+     * updates to the model supplied by the domain {@link UseCaseObservableList}.
+     * @param index the index of the item in the data model that has changed.
+     */
+    @Override
+    public void notifyItemUpdated(int index) {
+        System.out.println(TAG + "notifyItemUpdated:" + " with index=" + index +
+                " with model=" + useCase.getModels().get(index));
+        if (this.index == index) {
+            // if the model has changed, update it
+            System.out.println(TAG + "notifyItemUpdated. This model with index=" + index + " has changed");
+            System.out.println(TAG + "notifyItemUpdated. pulling model from useCase=" + useCase.getModels().get(index));
+        }
+    }
+    // endregion model changed listeners
+
+    // region view event listeners
+    /**
+     * Adds listeners interested in changes to values in the
+     * views components that may change values in the data
+     * model.
+     */
+    private void addViewListeners() {
+        addFormViewListeners();
+        addControlListeners();
+    }
+
+    private void removeViewListeners() {
         removeFormViewListeners();
         removeControlListeners();
     }
@@ -58,8 +103,14 @@ public class ItemViewImpl
     // TODO - DON'T USE DOCUMENT LISTENERS, USE DOCUMENT FILTERS!
     //  SEE: https://stackoverflow.com/questions/7439455/document-model-in-java-gui
     //
+
+
+    /**
+     * Adds listeners interested in changes to values triggered by events in the
+     * views (mostly text based) components.
+     */
     private void addFormViewListeners() {
-                
+
         TextListener firstName = new TextListener(formView.getFirstNameField());
         firstName.addTextChangedListener(controller);
         textListeners[0] = firstName;
@@ -79,10 +130,16 @@ public class ItemViewImpl
         }
     }
 
-    private void addControlViewComponentListeners() {
+    /**
+     * Adds listeners that are interested in events triggered by
+     * the views controls.
+     */
+    private void addControlListeners() {
+
         controlsView.getAddMemberButton().setActionCommand(
-                ControlCommand.ADD_MEMBER_COMMAND.name()
+                ControlCommand.ADD_AS_MEMBER_COMMAND.name()
         );
+
         controlsView.getAddMemberButton().addActionListener(
                 controller
         );
@@ -108,7 +165,21 @@ public class ItemViewImpl
         controlsView.getDeleteButton().removeActionListener(controller);
     }
 
+// endregion view event listeners
+
     /**
+     * Implements {@link ItemView}.
+     * Gets the index of the model this view represents.
+     * @return the index of the model in the source data this view
+     * represents.
+     */
+    @Override
+    public int getIndex() {
+        return index;
+    }
+
+    /**
+     * Implements {@link ItemView}.
      * Gets the current values from the views controls.
      *
      * @return the current values in the views controls
@@ -118,23 +189,36 @@ public class ItemViewImpl
         return new MyModel(
                 formView.getFirstNameField().getText(),
                 formView.getLastNameField().getText(),
+
                 formView.getAgeField().getText().equals("") ?
                         0 :
                         Integer.parseInt(formView.getAgeField().getText()),
+
                 controlsView.getIsMemberCheckBox().isSelected()
         );
     }
 
+    /**
+     * Implements {@link ItemView}.
+     * This is where the model is bound to the values in the view.
+     * @param model the model with values to be bound.
+     */
     @Override
-    public void bindModel(MyModel myModel) {
-        removeViewControlListeners();
+    public void bindModel(Object model) {
+        MyModel myModel = (MyModel) model;
+        System.out.println(TAG + "bindModel:" + " model=" + myModel);
+        removeFormViewListeners();
         formView.getFirstNameField().setText(myModel.getFirstName());
         formView.getLastNameField().setText(myModel.getLastName());
         formView.getAgeField().setText(String.valueOf(myModel.getAge()));
         controlsView.getIsMemberCheckBox().setSelected(myModel.isMember());
-        addViewControlListeners();
+        addFormViewListeners();
     }
 
+    /**
+     * Implements {@link ItemView}.
+     * @return the view
+     */
     @Override
     public JPanel getView() {
         return view;

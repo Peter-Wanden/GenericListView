@@ -1,8 +1,8 @@
 package ui.mylistview;
 
-import genericlistview.AbstractGenericListView;
 import data.MyModel;
 import domain.UseCaseObservableList;
+import genericlistview.AbstractGenericListView;
 import ui.itemview.ItemController;
 import ui.itemview.ItemView;
 
@@ -23,21 +23,23 @@ public class MyGenericListView
     }
 
     /**
-     * Called each time a {@link genericlistview.AbstractGenericListView.ViewHolder} is created,
+     * Called each time a {@link ViewHolder} is created,
      * whether for editing or displaying data.
-     * @param position the index of item in the supplied data.
-     * @return a {@link genericlistview.AbstractGenericListView.ViewHolder} containing the view.
+     * @param index the index of item in the supplied data.
+     * @return a {@link ViewHolder} containing the view.
      */
     @Override
-    protected ViewHolder onCreateViewHolder(int position) {
+    protected ViewHolder onCreateViewHolder(final int index) {
 
-        ItemController itemController = new ItemController(listViewController, position);
-        itemController.getView().bindModel(
-                listViewController.getUseCase().getModels().get(position)
+        MyModel model = useCase.getModels().get(index);
+
+        ItemController itemController = new ItemController(
+                listViewController, useCase, index
         );
+        itemController.getView().bindModel(model);
 
         return new MyViewHolder(
-                position,
+                index,
                 itemController.getModel(),
                 itemController.getView(),
                 itemController
@@ -46,12 +48,11 @@ public class MyGenericListView
 
     /**
      * Called by the list model (TableModel) while rendering views.
-     *
-     * @param position the index of the item in the supplied data.
+     * @param index the index of the item in the supplied data.
      * @return returns the data model representing the index.
      */
     @Override
-    protected Object getValueAt(int position) {
+    protected Object getValueAt(int index) {
         int size = useCase.getItemCount();
 
         // edge case: There are no elements in the list
@@ -62,27 +63,26 @@ public class MyGenericListView
 
         // edge case: The last element has been deleted.
         // Return the new index of the last element.
-        if (position >= size) {
-            position = size -1;
+        if (index >= size) {
+            index = size -1;
         }
 
 //        System.out.println(TAG + "getValueAt: position=" + position);
-        return useCase.getModels().get(position);
+        return useCase.getModels().get(index);
     }
 
     /**
      * Called post editing the views controls in the current ViewHolder.
-     *
-     * @param position the index of the item in the list model
+     * @param index the index of the item in the list model
      * @param model    the model with updated values form the
      *                 display controls.
      */
     @Override
-    protected void setValueAt(int position,
+    protected void setValueAt(int index,
                               Object model) {
 
         MyModel updatedModel = (MyModel) model;
-        useCase.updateModel(position, updatedModel);
+        useCase.updateModel(index, updatedModel);
 
         System.out.println(
                 TAG + "setValueAt:" + " updatedModel=" + updatedModel
@@ -98,6 +98,7 @@ public class MyGenericListView
             extends
             AbstractGenericListView.ViewHolder {
 
+        @SuppressWarnings("unused")
         private static final String TAG = "MyViewHolder" + ": ";
 
         public MyViewHolder(int position,
@@ -108,17 +109,14 @@ public class MyGenericListView
             super(position, model, view.getView(), controller);
         }
 
-        /**
-         * This is where you get the updated values from the view
-         * controls and components.
-         *
-         * @return the updated model from the view.
-         */
         @Override
         public Object getModel() {
-            MyModel model = ((ItemController) controller).getModel();
-            System.out.println(TAG + "getModel: model=" + model);
-            return model;
+            return ((ItemController)controller).getView().getModel();
+        }
+
+        @Override
+        public void bindModel(Object model) {
+            ((ItemView) view).bindModel(model);
         }
     }
 }

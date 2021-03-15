@@ -1,20 +1,15 @@
 package ui.itemview;
 
+import domain.UseCaseObservableList;
+import domain.UseCaseObservableList.FieldName;
 import utils.SpringUtilities;
 
 import javax.swing.*;
 
 public class FormView {
 
-    public enum FieldName {
-        FIRST_NAME,
-        LAST_NAME,
-        AGE
-    }
-
     public static final int PADDING = 5;
     public static final int START_POSITION = 10;
-    public static final int PREFERRED_HEIGHT = 100;
 
     private final JPanel view;
 
