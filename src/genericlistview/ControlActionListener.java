@@ -25,5 +25,5 @@ public interface ControlActionListener {
      *
      * @param index the index of the data model in the source data.
      */
-    void deleteModel(int index);
+    void deleteMember(int index);
 }

@@ -12,14 +12,14 @@ public interface ModelListener {
 
     void notifyDataStructureChanged();
 
-    void notifyItemsInserted(int firstRow,
-                             int lastRow);
+    void notifyItemsInserted(int firstIndex,
+                             int lastIndex);
 
-    void notifyItemsUpdated(int firstRow,
-                            int lastRow);
+    void notifyItemsUpdated(int firstIndex,
+                            int lastIndex);
 
-    void notifyItemUpdated(int row);
+    void notifyItemUpdated(int index);
 
-    void notifyItemsDeleted(int firstRow,
-                            int lastRow);
+    void notifyItemsDeleted(int firstIndex,
+                            int lastIndex);
 }

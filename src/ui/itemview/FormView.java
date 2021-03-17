@@ -1,8 +1,8 @@
 package ui.itemview;
 
-import domain.UseCaseObservableList;
 import domain.UseCaseObservableList.FieldName;
 import utils.SpringUtilities;
+
 
 import javax.swing.*;
 
@@ -10,6 +10,7 @@ public class FormView {
 
     public static final int PADDING = 5;
     public static final int START_POSITION = 10;
+    public static final int TEXT_LENGTH = 20;
 
     private final JPanel view;
 
@@ -27,15 +28,15 @@ public class FormView {
         view = new JPanel(new SpringLayout());
 
         firstNameLabel = new JLabel("First name");
-        firstNameField = new JTextField();
+        firstNameField = new JTextField(TEXT_LENGTH);
         firstNameField.setName(FieldName.FIRST_NAME.name());
 
         lastNameLabel = new JLabel("Last name");
-        lastNameField = new JTextField();
+        lastNameField = new JTextField(TEXT_LENGTH);
         lastNameField.setName(FieldName.LAST_NAME.name());
 
         ageLabel = new JLabel("Age");
-        ageField = new JTextField();
+        ageField = new JTextField(TEXT_LENGTH);
         ageField.setName(FieldName.AGE.name());
     }
 

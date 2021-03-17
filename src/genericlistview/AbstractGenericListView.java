@@ -1,7 +1,5 @@
 package genericlistview;
 
-import ui.itemview.ItemView;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
@@ -11,59 +9,45 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
+@SuppressWarnings("unused")
 public abstract class AbstractGenericListView
         implements
         ModelListener,
         TableModelListener {
 
-    @SuppressWarnings("unused")
     private static final String TAG = "AbstractGenericListView" + ": ";
 
     /**
      * Holds the view in a table cell. It is used by both the {@link Renderer}
      * and {@link Editor} as a generic wrapper for the view.
      */
-    public static abstract class ViewHolder
-            implements ItemView {
+    public static abstract class ViewHolder {
 
-        @SuppressWarnings("unused")
         private static final String TAG = "ViewHolder" + ": ";
 
         // the index of the model data in the model list
         protected final int index;
-        // the model
-        protected Object model;
         // the view to be rendered
         protected final Component view;
-        // the (optional) controller;
-        protected final Object controller;
 
         /**
-         * @param view     the view to be rendered.
+         * @param view  the view to be rendered.
          * @param index the index of the model in the source data.
          */
         public ViewHolder(int index,
-                          Object model,
-                          Component view,
-                          Object controller) {
+                          Component view) {
 
             this.index = index;
 
             if (view == null) {
                 throw new IllegalArgumentException("item view may not be null");
             }
-            if (model == null) {
-                throw new IllegalArgumentException("model may not be null");
-            }
-            this.model = model;
             this.view = view;
-            this.controller = controller;
         }
 
         // TODO: implement the difference between position and index where:
         //  index - is the index in the model list
         //  position - is the position as displayed in the list.
-        @Override
         public int getIndex() {
             return index;
         }
@@ -73,7 +57,6 @@ public abstract class AbstractGenericListView
          *
          * @return the view to be rendered.
          */
-        @Override
         public Component getView() {
             return view;
         }
@@ -87,12 +70,7 @@ public abstract class AbstractGenericListView
          * @return either the model passed into the view or a model updated
          * within the view, post editing.
          */
-        @Override
         public abstract Object getModel();
-
-        public Object getController() {
-            return controller;
-        }
     }
 
     /**
@@ -149,7 +127,7 @@ public abstract class AbstractGenericListView
                                                      int row,
                                                      int column) {
 
-            viewHolder = onCreateViewHolder(row);
+            viewHolder = onCreateEditorViewHolder(row);
             return viewHolder.getView();
         }
 
@@ -264,13 +242,17 @@ public abstract class AbstractGenericListView
      * Implementers should place their view into the ViewHolder.
      * The view holder is used by both the renderer and editor
      * for displaying views.
+     *
      * @param index the index of the item model in the source data.
      * @return your ViewHolder concrete class with your view.
      */
     protected abstract ViewHolder onCreateViewHolder(final int index);
 
+    protected abstract ViewHolder onCreateEditorViewHolder(final int index);
+
     /**
      * Called by the list model (TableModel) while rendering views.
+     *
      * @param index the index of the item in the supplied data.
      * @return returns the data model representing the index.
      */
@@ -278,6 +260,7 @@ public abstract class AbstractGenericListView
 
     /**
      * Informs the table model of the amount of items in the data
+     *
      * @return the number of data models in your list.
      */
     protected abstract int getItemCount();
@@ -286,6 +269,7 @@ public abstract class AbstractGenericListView
      * Called when editing stops. Passes the value of the object
      * collected by the {@link Editor#getCellEditorValue}. This
      * is generally an updated data model
+     *
      * @param index the index of the data model being edited.
      * @param value the edited value of the data model as provided by
      *              {@link Editor#getCellEditorValue()}.
@@ -296,6 +280,7 @@ public abstract class AbstractGenericListView
 
     /**
      * Access to the root view of this {@link AbstractGenericListView} component.
+     *
      * @return an {@link JScrollPane} containing the view.
      */
     public JScrollPane getView() {
@@ -312,6 +297,7 @@ public abstract class AbstractGenericListView
     }
 
     /**
+     * Implements {@link ModelListener}.
      * Delegate method that informs the table model the table structure has changed.
      */
     @Override
@@ -323,25 +309,28 @@ public abstract class AbstractGenericListView
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsInserted(int, int)}
      *
-     * @param firstRow the inclusive index of the first row of data inserted.
-     * @param lastRow  the inclusive index of the last row of data inserted.
+     * @param firstIndex the inclusive index of the first row of data inserted.
+     * @param lastIndex  the inclusive index of the last row of data inserted.
      */
     @Override
-    public void notifyItemsInserted(int firstRow, int lastRow) {
-        tableModel.fireTableRowsInserted(firstRow, lastRow);
+    public void notifyItemsInserted(int firstIndex, int lastIndex) {
+        tableModel.fireTableRowsInserted(firstIndex, lastIndex);
     }
 
     /**
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
-     * @param firstRow the inclusive index of the first item in the source data to be updated.
-     * @param lastRow  the inclusive index of the last item in the source data to be updated.
+     * @param firstIndex the inclusive index of the first item in the source data to be updated.
+     * @param lastIndex  the inclusive index of the last item in the source data to be updated.
      */
     @Override
-    public void notifyItemsUpdated(int firstRow,
-                                   int lastRow) {
-        tableModel.fireTableCellUpdated(firstRow, lastRow);
+    public void notifyItemsUpdated(int firstIndex,
+                                   int lastIndex) {
+        // todo, if model updated is model being edited?
+        //  When ViewHolder is being created, if it is being created for the editor
+        //  then attach a model changed listener to the view
+        tableModel.fireTableCellUpdated(firstIndex, lastIndex);
     }
 
     /**
@@ -360,12 +349,12 @@ public abstract class AbstractGenericListView
      * Delegate method that informs the table model of a change in the source data.
      * Implements {@link ModelListener#notifyItemsDeleted(int, int)}
      *
-     * @param firstRow the inclusive index of the first row in the source data to be deleted.
-     * @param lastRow  the inclusive index of the last row in the source data to be deleted
+     * @param firstIndex the inclusive index of the first row in the source data to be deleted.
+     * @param lastIndex  the inclusive index of the last row in the source data to be deleted
      */
     @Override
-    public void notifyItemsDeleted(int firstRow, int lastRow) {
-        tableModel.fireTableRowsDeleted(firstRow, lastRow);
+    public void notifyItemsDeleted(int firstIndex, int lastIndex) {
+        tableModel.fireTableRowsDeleted(firstIndex, lastIndex);
 
     }
 

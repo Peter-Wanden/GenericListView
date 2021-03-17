@@ -60,7 +60,7 @@ public class ItemController
             listViewController.removeMembership(index);
         }
         else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
-            listViewController.deleteModel(index);
+            listViewController.deleteMember(index);
         }
     }
 

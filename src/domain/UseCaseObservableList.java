@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Represents a single source of truth for the data models.
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public class UseCaseObservableList
         implements
         ModelListener,
@@ -213,7 +214,8 @@ public class UseCaseObservableList
 
         System.out.println(TAG + "notifyItemsUpdated:=" +
                 " from:" + models.get(firstIndex) +
-                " to:" + lastIndex);
+                " to:" + lastIndex +
+                " there are currently:" + modelListeners.size() + " model listeners to update.");
 
         modelListeners.forEach(listener ->
                 listener.notifyItemsUpdated(firstIndex, lastIndex)
@@ -225,7 +227,7 @@ public class UseCaseObservableList
      * {@link #notifyItemsUpdated(int, int)}
      */
     public void notifyItemUpdated(int index) {
-        notifyItemsUpdated(index, index);
+        modelListeners.forEach(listener -> listener.notifyItemUpdated(index));
     }
     // endregion update model
 

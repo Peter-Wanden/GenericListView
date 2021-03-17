@@ -1,14 +1,17 @@
 package ui.itemview;
 
+import genericlistview.ModelListenerAdapter;
+
 import java.awt.*;
 
-public interface ItemView {
+public abstract class ItemView
+        extends ModelListenerAdapter {
 
-    int getIndex();
+    public abstract int getIndex();
 
-    Object getModel();
+    public abstract Object getModel();
 
-    void bindModel(Object myModel);
+    public abstract void bindModel(Object myModel);
 
-    Component getView();
+    public abstract Component getView();
 }

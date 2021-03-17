@@ -104,7 +104,7 @@ public class MyGenericListViewController
      * @param index the index of the object in the model
      */
     @Override
-    public void deleteModel(int index) {
+    public void deleteMember(int index) {
         useCase.deleteModel(index);
     }
 

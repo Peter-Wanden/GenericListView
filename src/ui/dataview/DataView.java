@@ -78,23 +78,23 @@ public class DataView
     }
 
     @Override
-    public void notifyItemsInserted(int firstRow, int lastRow) {
-        tableModel.fireTableRowsInserted(firstRow, lastRow);
+    public void notifyItemsInserted(int firstIndex, int lastIndex) {
+        tableModel.fireTableRowsInserted(firstIndex, lastIndex);
     }
 
     @Override
-    public void notifyItemsUpdated(int firstRow, int lastRow) {
-        tableModel.fireTableRowsUpdated(firstRow, lastRow);
+    public void notifyItemsUpdated(int firstIndex, int lastIndex) {
+        tableModel.fireTableRowsUpdated(firstIndex, lastIndex);
     }
 
     @Override
-    public void notifyItemUpdated(int row) {
-        tableModel.fireTableRowsUpdated(row,row);
+    public void notifyItemUpdated(int index) {
+        tableModel.fireTableRowsUpdated(index, index);
     }
 
     @Override
-    public void notifyItemsDeleted(int firstRow, int lastRow) {
-        tableModel.fireTableRowsDeleted(firstRow, lastRow);
+    public void notifyItemsDeleted(int firstIndex, int lastIndex) {
+        tableModel.fireTableRowsDeleted(firstIndex, lastIndex);
     }
 
     public JScrollPane getView() {

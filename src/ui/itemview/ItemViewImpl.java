@@ -11,8 +11,7 @@ import javax.swing.*;
 import static ui.mylistview.MyGenericListViewController.*;
 
 public class ItemViewImpl
-        extends ModelListenerAdapter
-        implements ItemView {
+        extends ItemView {
 
     private static final String TAG = "ItemView" + ": ";
 
@@ -64,7 +63,7 @@ public class ItemViewImpl
      * Adds listeners interested in changes to the data model.
      */
     private void addModelListeners() {
-        useCase.addModelListener(this);
+//        useCase.addModelListener(this);
     }
 
     /**
@@ -74,12 +73,10 @@ public class ItemViewImpl
      */
     @Override
     public void notifyItemUpdated(int index) {
-        System.out.println(TAG + "notifyItemUpdated:" + " with index=" + index +
-                " with model=" + useCase.getModels().get(index));
         if (this.index == index) {
             // if the model has changed, update it
-            System.out.println(TAG + "notifyItemUpdated. This model with index=" + index + " has changed");
             System.out.println(TAG + "notifyItemUpdated. pulling model from useCase=" + useCase.getModels().get(index));
+            bindModel(useCase.getModels().get(index));
         }
     }
     // endregion model changed listeners
@@ -99,11 +96,6 @@ public class ItemViewImpl
         removeFormViewListeners();
         removeControlListeners();
     }
-
-    // TODO - DON'T USE DOCUMENT LISTENERS, USE DOCUMENT FILTERS!
-    //  SEE: https://stackoverflow.com/questions/7439455/document-model-in-java-gui
-    //
-
 
     /**
      * Adds listeners interested in changes to values triggered by events in the
@@ -206,13 +198,15 @@ public class ItemViewImpl
     @Override
     public void bindModel(Object model) {
         MyModel myModel = (MyModel) model;
-        System.out.println(TAG + "bindModel:" + " model=" + myModel);
-        removeFormViewListeners();
+
+        // todo, if the user is currently editing the field, i.e. the fields document
+        //  is locked, get a hold of the document through a document filter.
+        //  SEE: https://stackoverflow.com/questions/7439455/document-model-in-java-gui
+
         formView.getFirstNameField().setText(myModel.getFirstName());
         formView.getLastNameField().setText(myModel.getLastName());
         formView.getAgeField().setText(String.valueOf(myModel.getAge()));
         controlsView.getIsMemberCheckBox().setSelected(myModel.isMember());
-        addFormViewListeners();
     }
 
     /**
