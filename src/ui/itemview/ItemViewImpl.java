@@ -8,11 +8,12 @@ import utils.TextListener;
 
 import javax.swing.*;
 
-import static ui.mylistview.MyGenericListViewController.*;
+import static ui.mylistview.MyGenericListViewController.ControlCommand;
 
 public class ItemViewImpl
         extends ItemView {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "ItemView" + ": ";
 
     private final FormView formView;
@@ -23,6 +24,7 @@ public class ItemViewImpl
     private final ItemController controller;
     private final TextListener[] textListeners = new TextListener[3];
     private final int index;
+    private MyModel model;
 
     public ItemViewImpl(ItemController controller,
                         UseCaseObservableList useCase) {
@@ -38,7 +40,6 @@ public class ItemViewImpl
         this.index = controller.getIndex();
 
         addViewListeners();
-        addModelListeners();
     }
 
     public void createView() {
@@ -59,29 +60,24 @@ public class ItemViewImpl
     This section is where the view listens and reacts to changes in the
     model, which in this case is the use case.
     */
-    /**
-     * Adds listeners interested in changes to the data model.
-     */
-    private void addModelListeners() {
-//        useCase.addModelListener(this);
-    }
 
     /**
      * Implements {@link ModelListenerAdapter}'. This item is listening for
      * updates to the model supplied by the domain {@link UseCaseObservableList}.
+     *
      * @param index the index of the item in the data model that has changed.
      */
     @Override
     public void notifyItemUpdated(int index) {
         if (this.index == index) {
             // if the model has changed, update it
-            System.out.println(TAG + "notifyItemUpdated. pulling model from useCase=" + useCase.getModels().get(index));
             bindModel(useCase.getModels().get(index));
         }
     }
     // endregion model changed listeners
 
     // region view event listeners
+
     /**
      * Adds listeners interested in changes to values in the
      * views components that may change values in the data
@@ -92,7 +88,7 @@ public class ItemViewImpl
         addControlListeners();
     }
 
-    private void removeViewListeners() {
+    public void removeViewListeners() {
         removeFormViewListeners();
         removeControlListeners();
     }
@@ -162,6 +158,7 @@ public class ItemViewImpl
     /**
      * Implements {@link ItemView}.
      * Gets the index of the model this view represents.
+     *
      * @return the index of the model in the source data this view
      * represents.
      */
@@ -193,24 +190,51 @@ public class ItemViewImpl
     /**
      * Implements {@link ItemView}.
      * This is where the model is bound to the values in the view.
+     *
      * @param model the model with values to be bound.
      */
     @Override
     public void bindModel(Object model) {
-        MyModel myModel = (MyModel) model;
+        if (this.model == null) this.model =  new MyModel();
 
-        // todo, if the user is currently editing the field, i.e. the fields document
-        //  is locked, get a hold of the document through a document filter.
-        //  SEE: https://stackoverflow.com/questions/7439455/document-model-in-java-gui
+        if (!this.model.equals(model)) {
+            this.model = (MyModel) model;
 
-        formView.getFirstNameField().setText(myModel.getFirstName());
-        formView.getLastNameField().setText(myModel.getLastName());
-        formView.getAgeField().setText(String.valueOf(myModel.getAge()));
-        controlsView.getIsMemberCheckBox().setSelected(myModel.isMember());
+        System.out.println(TAG + "bindModel:" + " model=" + model);
+
+            String oldFirstName = formView.getFirstNameField().getText();
+            String newFirstName = this.model.getFirstName();
+            if (!oldFirstName.equals(newFirstName)) {
+                formView.getFirstNameField().setText(newFirstName);
+            }
+
+            String oldLastName = formView.getLastNameField().getText();
+            String newLastName = this.model.getLastName();
+            if (!oldLastName.equals(newLastName)) {
+                formView.getLastNameField().setText(newLastName);
+            }
+
+            String oldAge = formView.getAgeField().
+                    getText().isEmpty() ? "0" :
+                    formView.getAgeField().getText();
+            String newAge = String.valueOf(this.model.getAge());
+            if (!oldAge.equals(newAge)) {
+                formView.getAgeField().setText(newAge);
+            }
+
+            boolean oldIsMember = controlsView.getIsMemberCheckBox().isSelected();
+            boolean newIsMember = this.model.isMember();
+//        System.out.println(TAG + "bindModel:" + " oldIsMember=" + oldIsMember + " newIsMember=" + newIsMember);
+            if (!oldIsMember == newIsMember) {
+//            System.out.println(TAG + "bindModel: membershipHasChanged");
+                controlsView.getIsMemberCheckBox().setSelected(newIsMember);
+            }
+        }
     }
 
     /**
      * Implements {@link ItemView}.
+     *
      * @return the view
      */
     @Override

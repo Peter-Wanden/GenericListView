@@ -227,6 +227,7 @@ public class UseCaseObservableList
      * {@link #notifyItemsUpdated(int, int)}
      */
     public void notifyItemUpdated(int index) {
+        System.out.println(TAG + "notifyItemUpdated: there are: " + modelListeners.size() + " to update");
         modelListeners.forEach(listener -> listener.notifyItemUpdated(index));
     }
     // endregion update model
@@ -259,7 +260,8 @@ public class UseCaseObservableList
                                     int lastIndex) {
         System.out.println(TAG + "notifyItemsInserted:" +
                 " from index:" + firstIndex +
-                " to index:" + lastIndex);
+                " to index:" + lastIndex +
+                " sending to " + modelListeners.size() + " listeners");
 
         modelListeners.forEach(listener ->
                 listener.notifyItemsInserted(firstIndex, lastIndex)

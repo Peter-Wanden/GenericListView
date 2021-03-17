@@ -3,7 +3,6 @@ package ui.itemview;
 import domain.UseCaseObservableList.FieldName;
 import utils.SpringUtilities;
 
-
 import javax.swing.*;
 
 public class FormView {
