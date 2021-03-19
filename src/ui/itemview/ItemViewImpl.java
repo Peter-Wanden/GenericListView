@@ -2,11 +2,15 @@ package ui.itemview;
 
 import data.MyModel;
 import domain.UseCaseObservableList;
+import domain.UseCaseObservableList.FieldName;
 import genericlistview.ModelListenerAdapter;
 import utils.RoundedPanel;
 import utils.TextListener;
 
 import javax.swing.*;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import static ui.mylistview.MyGenericListViewController.ControlCommand;
 
@@ -28,7 +32,6 @@ public class ItemViewImpl
 
     public ItemViewImpl(ItemController controller,
                         UseCaseObservableList useCase) {
-        super();
 
         view = new RoundedPanel(30);
         view.setOpaque(true);
@@ -55,7 +58,7 @@ public class ItemViewImpl
         view.add(splitPane);
     }
 
-    // region model changed listeners
+// region model changed listeners
     /*
     This section is where the view listens and reacts to changes in the
     model, which in this case is the use case.
@@ -71,12 +74,13 @@ public class ItemViewImpl
     public void notifyItemUpdated(int index) {
         if (this.index == index) {
             // if the model has changed, update it
+            System.out.println(TAG + "notifyItemUpdated=" + useCase.getModels().get(index));
             bindModel(useCase.getModels().get(index));
         }
     }
-    // endregion model changed listeners
+// endregion model changed listeners
 
-    // region view event listeners
+// region view event listeners
 
     /**
      * Adds listeners interested in changes to values in the
@@ -110,6 +114,7 @@ public class ItemViewImpl
         TextListener age = new TextListener(formView.getAgeField());
         age.addTextChangedListener(controller);
         textListeners[2] = age;
+
     }
 
     private void removeFormViewListeners() {
@@ -195,7 +200,7 @@ public class ItemViewImpl
      */
     @Override
     public void bindModel(Object model) {
-        if (this.model == null) this.model =  new MyModel();
+        if (this.model == null) this.model = new MyModel();
 
         if (!this.model.equals(model)) {
             this.model = (MyModel) model;

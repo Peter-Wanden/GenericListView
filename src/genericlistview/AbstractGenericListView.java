@@ -1,5 +1,7 @@
 package genericlistview;
 
+import genericlistview.AbstractGenericListView.ViewHolder;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
@@ -10,7 +12,9 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 @SuppressWarnings("unused")
-public abstract class AbstractGenericListView
+public abstract class AbstractGenericListView<
+        VIEW_HOLDER extends ViewHolder
+        >
         implements
         ModelListener,
         TableModelListener {
@@ -21,35 +25,22 @@ public abstract class AbstractGenericListView
      * Holds the view in a table cell. It is used by both the {@link Renderer}
      * and {@link Editor} as a generic wrapper for the view.
      */
-    public static abstract class ViewHolder {
+    public abstract class ViewHolder {
 
         private static final String TAG = "ViewHolder" + ": ";
 
-        // the index of the model data in the model list
-        protected final int index;
         // the view to be rendered
         protected final Component view;
 
         /**
          * @param view  the view to be rendered.
-         * @param index the index of the model in the source data.
          */
-        public ViewHolder(int index,
-                          Component view) {
-
-            this.index = index;
+        public ViewHolder(Component view) {
 
             if (view == null) {
                 throw new IllegalArgumentException("item view may not be null");
             }
             this.view = view;
-        }
-
-        // TODO: implement the difference between position and index where:
-        //  index - is the index in the model list
-        //  position - is the position as displayed in the list.
-        public int getIndex() {
-            return index;
         }
 
         /**
@@ -71,7 +62,17 @@ public abstract class AbstractGenericListView
          * within the view, post editing.
          */
         public abstract Object getModel();
+        
+
+        /**
+         * Called just before the Editor closes the view. Now is a good time to
+         * clean things up, such as removing listeners and extracting any values
+         * in the ui controls, etc.
+         */
+        public abstract void prepareEditingStopped();
     }
+
+    static int rendererConstructorCalls;
 
     /**
      * Renders the view returned by the {@link ViewHolder} to the cell.
@@ -81,6 +82,8 @@ public abstract class AbstractGenericListView
 
         private static final String TAG = "Renderer" + ": ";
 
+        private VIEW_HOLDER viewHolder;
+
         @Override
         public Component getTableCellRendererComponent(JTable table,
                                                        Object model,
@@ -89,7 +92,11 @@ public abstract class AbstractGenericListView
                                                        int row,
                                                        int column) {
 
-            ViewHolder viewHolder = onCreateViewHolder(row);
+            if (viewHolder == null) {
+                viewHolder = onCreateViewHolder(false);
+            }
+
+            onBindViewHolder(viewHolder, row, false);
             Component view = viewHolder.view;
             setViewHeight(view);
 
@@ -118,7 +125,7 @@ public abstract class AbstractGenericListView
 
         private static final String TAG = "Editor" + ": ";
 
-        private ViewHolder viewHolder;
+        private VIEW_HOLDER viewHolder;
 
         @Override
         public Component getTableCellEditorComponent(JTable table,
@@ -126,8 +133,12 @@ public abstract class AbstractGenericListView
                                                      boolean isSelected,
                                                      int row,
                                                      int column) {
+            if (viewHolder == null) {
+                viewHolder = onCreateViewHolder(true);
+            }
 
-            viewHolder = onCreateEditorViewHolder(row);
+            onBindViewHolder(viewHolder, row, true);
+
             return viewHolder.getView();
         }
 
@@ -143,6 +154,13 @@ public abstract class AbstractGenericListView
         public Object getCellEditorValue() {
             return viewHolder.getModel();
         }
+
+        @Override
+        public boolean stopCellEditing() {
+            viewHolder.prepareEditingStopped();
+            System.out.println(TAG + "AbstractEditor: isEditing=" + table.isEditing());
+            return super.stopCellEditing();
+        }
     }
 
     private class GenericTableModel
@@ -152,17 +170,17 @@ public abstract class AbstractGenericListView
 
         @Override
         public String getColumnName(int column) {
-            return COLUMN_NAME;
+            return AbstractGenericListView.COLUMN_NAME;
         }
 
         @Override
         public int getRowCount() {
-            return getItemCount();
+            return AbstractGenericListView.this.getItemCount();
         }
 
         @Override
         public int getColumnCount() {
-            return COLUMN_NUMBER + 1;
+            return AbstractGenericListView.COLUMN_NUMBER + 1;
         }
 
         @Override
@@ -180,7 +198,7 @@ public abstract class AbstractGenericListView
 
         @Override
         public Class<?> getColumnClass(int columnIndex) {
-            return ViewHolder.class;
+            return AbstractGenericListView.ViewHolder.class;
         }
 
         /**
@@ -189,7 +207,7 @@ public abstract class AbstractGenericListView
          * {@link Editor#getCellEditorValue()} method is called, which in turn calls
          * the {@link ViewHolder#getModel()} method, delegating the task of getting
          * the current views values and placing them in a model. The model
-         * is then passed to the implementer for processing.
+         * is then passed to the implementer for processing.         *
          *
          * @param model       the updated model.
          * @param rowIndex    the row or index of the item in the data model.
@@ -211,7 +229,8 @@ public abstract class AbstractGenericListView
     private final AbstractTableModel tableModel;
     private final JScrollPane view;
 
-    public AbstractGenericListView() {
+    protected AbstractGenericListView() {
+        System.out.println(TAG + "constructor called.");
 
         tableModel = new GenericTableModel();
         table = new JTable();
@@ -238,17 +257,37 @@ public abstract class AbstractGenericListView
         tableModel.addTableModelListener(this);
     }
 
+// region abstract methods
+
     /**
-     * Implementers should place their view into the ViewHolder.
-     * The view holder is used by both the renderer and editor
-     * for displaying views.
+     * When the table is creating its {@link Renderer} and {@link Editor},
+     * which it does only once for each, it calls this method so that the
+     * implementer may provide a ViewHolder. Implementers should place their
+     * view into the ViewHolder. The <code>isEditor</code> boolean tells the
+     * implementer if the {@link ViewHolder}'s view should return the editor
+     * view or the renderer view. Both views can be the same type.
      *
-     * @param index the index of the item model in the source data.
+     * @param isEditor true if the view holder should contain the editor
+     *                 {@link Editor} view.
      * @return your ViewHolder concrete class with your view.
      */
-    protected abstract ViewHolder onCreateViewHolder(final int index);
+    protected abstract VIEW_HOLDER onCreateViewHolder(final boolean isEditor);
 
-    protected abstract ViewHolder onCreateEditorViewHolder(final int index);
+    /**
+     * Called by the underlying table to display the data at the specified
+     * index. This method should update the contents of the
+     * {@link ViewHolder#view} to reflect the item at the given index.
+     * <p>
+     *
+     * @param viewHolder The ViewHolder which should be updated to represent
+     *                   the contents of the item at the given index in the
+     *                   data set.
+     * @param index      The index of the item within the data set.
+     */
+    protected abstract void onBindViewHolder(final VIEW_HOLDER viewHolder,
+                                             final int index,
+                                             final boolean isEditor
+    );
 
     /**
      * Called by the list model (TableModel) while rendering views.
@@ -277,28 +316,22 @@ public abstract class AbstractGenericListView
     protected abstract void setValueAt(int index,
                                        Object value
     );
+// endregion abstract methods
 
-    /**
-     * Access to the root view of this {@link AbstractGenericListView} component.
-     *
-     * @return an {@link JScrollPane} containing the view.
-     */
-    public JScrollPane getView() {
-        return view;
-    }
+// region data change notifications
 
     /**
      * Delegate method that informs the table model of a change in the source data.
-     * Implements {@link ModelListener#notifyDataSetChanged()}
+     * Implements {@link ModelListener#notifyDatasetChanged()}
      */
     @Override
-    public void notifyDataSetChanged() {
+    public void notifyDatasetChanged() {
         tableModel.fireTableDataChanged();
     }
 
     /**
-     * Implements {@link ModelListener}.
      * Delegate method that informs the table model the table structure has changed.
+     * Implements {@link ModelListener#notifyDataStructureChanged()}.
      */
     @Override
     public void notifyDataStructureChanged() {
@@ -357,6 +390,7 @@ public abstract class AbstractGenericListView
         tableModel.fireTableRowsDeleted(firstIndex, lastIndex);
 
     }
+// endregion data change notifications.
 
     /**
      * Implements {@link TableModelListener}. This fine grain notification tells listeners
@@ -391,10 +425,23 @@ public abstract class AbstractGenericListView
                                     editingRow <= lastRowChanged;
 
                     if (editingCellInRangeOfChangedCells) {
+
                         editor.cancelCellEditing();
                     }
                 }
             }
         }
     }
+
+// region getters and setters
+
+    /**
+     * Access to the root view of this {@link AbstractGenericListView} component.
+     *
+     * @return an {@link JScrollPane} containing the view.
+     */
+    public JScrollPane getView() {
+        return view;
+    }
+// endregion getters and setters
 }

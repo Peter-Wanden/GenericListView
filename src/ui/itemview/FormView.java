@@ -4,8 +4,13 @@ import domain.UseCaseObservableList.FieldName;
 import utils.SpringUtilities;
 
 import javax.swing.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 public class FormView {
+
+    @SuppressWarnings("unused")
+    private static final String TAG = "FormView" + ": ";
 
     public static final int PADDING = 5;
     public static final int START_POSITION = 10;

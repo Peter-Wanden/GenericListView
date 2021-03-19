@@ -30,13 +30,13 @@ public class ItemController
 
     private final List<FieldChangedListener> fieldChangedListeners;
 
-    private final MyGenericListViewController listViewController;
+    private MyGenericListViewController listViewController;
     private final ItemView view;
     private final int index;
 
-    public ItemController(final MyGenericListViewController listViewController,
-                          final UseCaseObservableList useCase,
-                          final int index) {
+    public ItemController(MyGenericListViewController listViewController,
+                          UseCaseObservableList useCase,
+                          int index) {
 
         fieldChangedListeners = new ArrayList<>();
 
@@ -61,6 +61,7 @@ public class ItemController
         }
         else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
             ((ItemViewImpl) view).removeViewListeners();
+            removeFieldChangedListener(listViewController);
             listViewController.deleteMember(index);
         }
     }
@@ -102,12 +103,6 @@ public class ItemController
                 listener.fieldChanged(index, fieldName, value)
         );
     }
-
-
-//        if (ControlCommand.ADD_MEMBER_COMMAND.name().equals(actionCommand)) {
-//            controlActionListeners.forEach(listener -> listener.addMembership(index));
-//        }
-
 
     public ItemView getView() {
         return view;

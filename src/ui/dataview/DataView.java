@@ -23,6 +23,8 @@ public class DataView
     class DataViewTableModel
             extends AbstractTableModel {
 
+        private static final String TAG = "DataViewTableModel" + ": ";
+
         @Override
         public String getColumnName(int column) {
             return columnNames[column];
@@ -30,6 +32,7 @@ public class DataView
 
         @Override
         public int getRowCount() {
+            System.out.println(TAG + "getRowCount: calling useCase.getItemCount");
             return useCase.getItemCount();
         }
 
@@ -40,6 +43,7 @@ public class DataView
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
+            System.out.println(TAG + "getValueAt: " + "useCase: getModels called.");
             MyModel myModel = useCase.getModels().get(rowIndex);
             switch (columnIndex) {
                 case 0 -> {return myModel.getFirstName();}
@@ -68,7 +72,7 @@ public class DataView
     }
 
     @Override
-    public void notifyDataSetChanged() {
+    public void notifyDatasetChanged() {
         tableModel.fireTableDataChanged();
     }
 

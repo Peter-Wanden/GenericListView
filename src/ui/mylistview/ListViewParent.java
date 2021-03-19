@@ -1,6 +1,5 @@
 package ui.mylistview;
 
-import genericlistview.AbstractGenericListView;
 import ui.mylistview.MyGenericListViewController.ControlCommand;
 import utils.UiUtils;
 
@@ -18,7 +17,7 @@ public class ListViewParent {
 
     private final JFrame frame;
     private final JLayeredPane layeredPane;
-    private final AbstractGenericListView listView;
+    private final MyGenericListView listView;
     private final MyGenericListViewController listViewController;
 
     public ListViewParent(MyGenericListViewController listViewController) {

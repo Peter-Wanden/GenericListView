@@ -38,12 +38,13 @@ public class MyGenericListViewController
     }
 
     private final UseCaseObservableList useCase;
-    private final AbstractGenericListView listView;
+    private final MyGenericListView listView;
 
     public MyGenericListViewController(UseCaseObservableList useCase) {
-
         this.useCase = useCase;
-        listView = new MyGenericListView(this, useCase);
+        listView = new MyGenericListView(useCase, this);
+        System.out.println(TAG + "constructor called:");
+
     }
 
     /**
@@ -108,7 +109,7 @@ public class MyGenericListViewController
         useCase.deleteModel(index);
     }
 
-    public AbstractGenericListView getView() {
+    public MyGenericListView getView() {
         return listView;
     }
 }

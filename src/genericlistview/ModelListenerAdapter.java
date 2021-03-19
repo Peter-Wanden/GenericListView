@@ -21,7 +21,7 @@ public abstract class ModelListenerAdapter
         implements ModelListener {
 
     @Override
-    public void notifyDataSetChanged() {}
+    public void notifyDatasetChanged() {}
 
     @Override
     public void notifyDataStructureChanged() {}

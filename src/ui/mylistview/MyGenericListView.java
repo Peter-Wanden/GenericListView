@@ -3,97 +3,117 @@ package ui.mylistview;
 import data.MyModel;
 import domain.UseCaseObservableList;
 import genericlistview.AbstractGenericListView;
-import genericlistview.AbstractGenericListView.ViewHolder;
 import ui.itemview.ItemController;
 import ui.itemview.ItemView;
+import ui.mylistview.MyGenericListView.MyViewHolder;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 
 public class MyGenericListView
-        extends AbstractGenericListView {
+        extends AbstractGenericListView<MyViewHolder> {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "MyGenericListView" + ": ";
 
-    private static class MyViewHolder
-            extends
-            AbstractGenericListView.ViewHolder {
+    private final boolean isLogging = true;
+
+    protected class MyViewHolder
+            extends ViewHolder {
 
         @SuppressWarnings("unused")
         private static final String TAG = "MyViewHolder" + ": ";
 
-        private final ItemController controller;
-        private final ItemView itemView;
+        private ItemController itemController;
+        private ItemView itemView;
 
-        public MyViewHolder(final int index,
-                            final ItemController controller,
-                            final ItemView itemView) {
+        public MyViewHolder(ItemController itemController,
+                            ItemView itemView) {
 
-            super(index, itemView.getView());
+            super(itemView.getView());
 
-            this.controller = controller;
+            if (MyGenericListView.this.isLogging) System.out.println(
+                    TAG + "MyViewHolder constructor called"
+            );
+
+            this.itemController = itemController;
             this.itemView = itemView;
         }
 
+        /**
+         * When editing of the view is complete, i.e
+         * when {@link JTable#editingStopped(ChangeEvent)} method is triggered,
+         * it calls this method to get the edited values. So this is where you
+         * get the values from your view and perform any clean up operations,
+         * such as removing any listeners the editor uses.
+         *
+         * @return the model values in the view
+         */
         @Override
         public Object getModel() {
             return itemView.getModel();
+        }
+
+        /**
+         * Called just before the Editor closes the view. Now is a good time
+         * to clean things up, such as removing listeners and extracting any
+         * values in the ui controls, etc.
+         */
+        @Override
+        public void prepareEditingStopped() {
+            System.out.println(TAG + "editingStopped: removing listeners");
+//            ((ItemViewImpl) itemView).removeViewListeners();
         }
     }
 
     private final UseCaseObservableList useCase;
     private final MyGenericListViewController listViewController;
 
-    public MyGenericListView(MyGenericListViewController listViewController,
-                             UseCaseObservableList useCase) {
+    public MyGenericListView(UseCaseObservableList useCase,
+                             MyGenericListViewController listViewController) {
 
-        this.listViewController = listViewController;
+        if (isLogging) System.out.println(TAG + "constructor called" +
+                " listViewController=" + listViewController);
+
         this.useCase = useCase;
-        useCase.addModelListener(this);
+        this.listViewController = listViewController;
+        this.useCase.addModelListener(this);
     }
 
     /**
-     * Called each time a {@link ViewHolder} is created to
-     * display a view.
-     * @param index the index of item in the supplied data.
+     * Called once to get a ViewHolder for the editor component and once to get
+     * the viewer component. See abstract method declaration comments for more
+     * information.
+     * @param isEditor true if the ViewHolder requested should contain the
+     *                 editor view.
      * @return a {@link ViewHolder} containing the view.
      */
     @Override
-    protected ViewHolder onCreateViewHolder(final int index) {
+    protected MyViewHolder onCreateViewHolder(boolean isEditor) {
+        System.out.println(TAG + "onCreateViewHolder: " + " isEditor=" + isEditor +
+                " listViewController=" + listViewController);
 
-        MyModel model = useCase.getModels().get(index);
-
-        ItemController controller = new ItemController(
-                listViewController, useCase, index
-        );
-        ItemView view = controller.getView();
-        view.bindModel(model);
-
-        return new MyViewHolder(
-                index, controller, view
-        );
+        ItemController controller = new ItemController(listViewController, useCase, 0);
+        return new MyViewHolder(controller, controller.getView());
     }
 
-    /**
-     * Called each time an {@link ViewHolder} is created to
-     * edit a view.
-     * @param index the index of the data model in the supplied data.
-     * @return a {@link ViewHolder} containing the view.
-     */
     @Override
-    protected ViewHolder onCreateEditorViewHolder(int index) {
+    protected void onBindViewHolder(MyViewHolder viewHolder,
+                                    int index,
+                                    boolean isEditor) {
+
+        System.out.println(TAG + "onBindViewHolder: " + "listViewController=" + listViewController);
 
         MyModel model = useCase.getModels().get(index);
+        viewHolder.itemController = new ItemController(listViewController, useCase, index);
+        viewHolder.itemView = viewHolder.itemController.getView();
+        viewHolder.itemView.bindModel(model);
 
-        ItemController controller = new ItemController(
-                listViewController, useCase, index
-        );
 
-        ItemView view = controller.getView();
-        view.bindModel(model);
+        System.out.println(TAG + "onBindViewHolder: " + " binding model:" + model);
 
-        useCase.addModelListener(view);
+//        if (isEditor) useCase.addModelListener(viewHolder.itemView);
 
-        return new MyViewHolder(
-                index, controller, view
-        );
     }
 
     /**
@@ -103,6 +123,8 @@ public class MyGenericListView
      */
     @Override
     protected Object getValueAt(int index) {
+        if (isLogging) System.out.println(TAG + "getValueAt: " + index +
+                " getItemCount called. useCase.getModels called.");
         int size = useCase.getItemCount();
 
         // edge case: There are no elements in the list
@@ -117,7 +139,7 @@ public class MyGenericListView
             index = size -1;
         }
 
-//        System.out.println(TAG + "getValueAt: position=" + position);
+        if (isLogging) System.out.println(TAG + "getValueAt: index=" + index + " useCase.getModels called");
         return useCase.getModels().get(index);
     }
 
@@ -134,13 +156,16 @@ public class MyGenericListView
         MyModel updatedModel = (MyModel) model;
         useCase.updateModel(index, updatedModel);
 
-        System.out.println(
+        if (isLogging) System.out.println(
                 TAG + "setValueAt:" + " updatedModel=" + updatedModel
         );
     }
 
     @Override
     protected int getItemCount() {
+//        if (isLogging) System.out.println(
+//                TAG + "getItemCount called"
+//        );
         return useCase.getItemCount();
     }
 }

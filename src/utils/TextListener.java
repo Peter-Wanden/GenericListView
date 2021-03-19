@@ -15,6 +15,7 @@ import java.util.List;
 public class TextListener
         implements DocumentListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "TextListener" + ": ";
 
     public interface TextChangedListener {

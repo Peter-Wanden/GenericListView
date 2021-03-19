@@ -8,7 +8,7 @@ package genericlistview;
  */
 public interface ModelListener {
 
-    void notifyDataSetChanged();
+    void notifyDatasetChanged();
 
     void notifyDataStructureChanged();
 
