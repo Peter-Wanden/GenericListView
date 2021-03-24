@@ -9,8 +9,9 @@ import java.util.List;
 
 /**
  * A listener whose purpose is to be attached to any {@link JTextComponent}.
- * Once attached any registered listeners are informed of changes to
- * the underlying JTextComponents {@link Document} object.
+ * Once attached any listeners registered with this listener are informed of
+ * changes to the underlying JTextComponents {@link Document} object.
+ * Note: listeners are notified after the change has happened.
  */
 public class TextListener
         implements DocumentListener {

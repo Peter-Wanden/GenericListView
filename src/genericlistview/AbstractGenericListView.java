@@ -53,10 +53,9 @@ public abstract class AbstractGenericListView<
         }
 
         /**
-         * The model passed into the {@link ViewHolder}. If this view
-         * holder has been rendered by the {@link Editor} and data within
-         * the view has been edited, you should collect and return it
-         * with this method.
+         * The model passed into the {@link ViewHolder}. If this view holder
+         * has been rendered by the {@link Editor} and data within the view has
+         * been edited, you should collect and return it with this method.
          *
          * @return either the model passed into the view or a model updated
          * within the view, post editing.
@@ -65,14 +64,12 @@ public abstract class AbstractGenericListView<
         
 
         /**
-         * Called just before the Editor closes the view. Now is a good time to
-         * clean things up, such as removing listeners and extracting any values
-         * in the ui controls, etc.
+         * Hook method called just before the Editor closes the view. Now is a
+         * good time to clean things up, such as removing listeners and
+         * extracting any values in the ui controls, etc.
          */
-        public abstract void prepareEditingStopped();
+        public void prepareEditingStopped(){}
     }
-
-    static int rendererConstructorCalls;
 
     /**
      * Renders the view returned by the {@link ViewHolder} to the cell.
@@ -96,7 +93,10 @@ public abstract class AbstractGenericListView<
                 viewHolder = onCreateViewHolder(false);
             }
 
-            onBindViewHolder(viewHolder, row, false);
+            onBindViewHolder(
+                    viewHolder, row, false
+            );
+
             Component view = viewHolder.view;
             setViewHeight(view);
 
@@ -137,7 +137,9 @@ public abstract class AbstractGenericListView<
                 viewHolder = onCreateViewHolder(true);
             }
 
-            onBindViewHolder(viewHolder, row, true);
+            onBindViewHolder(
+                    viewHolder, row, true
+            );
 
             return viewHolder.getView();
         }
@@ -163,6 +165,10 @@ public abstract class AbstractGenericListView<
         }
     }
 
+    /**
+     * An implementation of {@link AbstractTableModel} that points to an
+     * external data source.
+     */
     private class GenericTableModel
             extends AbstractTableModel {
 
@@ -207,7 +213,7 @@ public abstract class AbstractGenericListView<
          * {@link Editor#getCellEditorValue()} method is called, which in turn calls
          * the {@link ViewHolder#getModel()} method, delegating the task of getting
          * the current views values and placing them in a model. The model
-         * is then passed to the implementer for processing.         *
+         * is then passed to the implementer for processing.
          *
          * @param model       the updated model.
          * @param rowIndex    the row or index of the item in the data model.
@@ -305,9 +311,9 @@ public abstract class AbstractGenericListView<
     protected abstract int getItemCount();
 
     /**
-     * Called when editing stops. Passes the value of the object
-     * collected by the {@link Editor#getCellEditorValue}. This
-     * is generally an updated data model
+     * Called when editing stops. Passes the value of the object collected by
+     * the {@link Editor#getCellEditorValue}. This is generally an updated data
+     * model.
      *
      * @param index the index of the data model being edited.
      * @param value the edited value of the data model as provided by
@@ -321,7 +327,8 @@ public abstract class AbstractGenericListView<
 // region data change notifications
 
     /**
-     * Delegate method that informs the table model of a change in the source data.
+     * Delegate method that informs the table model of a change in the source
+     * data.
      * Implements {@link ModelListener#notifyDatasetChanged()}
      */
     @Override
@@ -330,7 +337,8 @@ public abstract class AbstractGenericListView<
     }
 
     /**
-     * Delegate method that informs the table model the table structure has changed.
+     * Delegate method that informs the table model the table structure has
+     * changed.
      * Implements {@link ModelListener#notifyDataStructureChanged()}.
      */
     @Override
@@ -339,7 +347,8 @@ public abstract class AbstractGenericListView<
     }
 
     /**
-     * Delegate method that informs the table model of a change in the source data.
+     * Delegate method that informs the table model of a change in the source
+     * data.
      * Implements {@link ModelListener#notifyItemsInserted(int, int)}
      *
      * @param firstIndex the inclusive index of the first row of data inserted.
@@ -351,18 +360,18 @@ public abstract class AbstractGenericListView<
     }
 
     /**
-     * Delegate method that informs the table model of a change in the source data.
+     * Delegate method that informs the table model of a change in the source
+     * data.
      * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
-     * @param firstIndex the inclusive index of the first item in the source data to be updated.
-     * @param lastIndex  the inclusive index of the last item in the source data to be updated.
+     * @param firstIndex the inclusive index of the first item in the source
+     *                   data to be updated.
+     * @param lastIndex  the inclusive index of the last item in the source
+     *                   data to be updated.
      */
     @Override
     public void notifyItemsUpdated(int firstIndex,
                                    int lastIndex) {
-        // todo, if model updated is model being edited?
-        //  When ViewHolder is being created, if it is being created for the editor
-        //  then attach a model changed listener to the view
         tableModel.fireTableCellUpdated(firstIndex, lastIndex);
     }
 
@@ -425,7 +434,6 @@ public abstract class AbstractGenericListView<
                                     editingRow <= lastRowChanged;
 
                     if (editingCellInRangeOfChangedCells) {
-
                         editor.cancelCellEditing();
                     }
                 }
@@ -443,5 +451,6 @@ public abstract class AbstractGenericListView<
     public JScrollPane getView() {
         return view;
     }
+
 // endregion getters and setters
 }

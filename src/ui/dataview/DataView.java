@@ -12,6 +12,7 @@ public class DataView
 
     @SuppressWarnings("unused")
     private static final String TAG = "DataView";
+    private boolean isLogging = false;
 
     static final String[] columnNames = {
             "First name",
@@ -32,7 +33,11 @@ public class DataView
 
         @Override
         public int getRowCount() {
-            System.out.println(TAG + "getRowCount: calling useCase.getItemCount");
+
+            if (isLogging) System.out.println(
+                    TAG + "getRowCount: calling useCase.getItemCount"
+            );
+
             return useCase.getItemCount();
         }
 
@@ -43,7 +48,11 @@ public class DataView
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            System.out.println(TAG + "getValueAt: " + "useCase: getModels called.");
+
+            if (isLogging) System.out.println(
+                    TAG + "getValueAt: " + "useCase: getModels called."
+            );
+
             MyModel myModel = useCase.getModels().get(rowIndex);
             switch (columnIndex) {
                 case 0 -> {return myModel.getFirstName();}

@@ -32,7 +32,7 @@ public class MyGenericListView
 
             super(itemView.getView());
 
-            if (MyGenericListView.this.isLogging) System.out.println(
+            if (isLogging) System.out.println(
                     TAG + "MyViewHolder constructor called"
             );
 
@@ -61,7 +61,7 @@ public class MyGenericListView
          */
         @Override
         public void prepareEditingStopped() {
-            System.out.println(TAG + "editingStopped: removing listeners");
+            if (isLogging) System.out.println(TAG + "editingStopped: removing listeners");
 //            ((ItemViewImpl) itemView).removeViewListeners();
         }
     }
@@ -90,10 +90,11 @@ public class MyGenericListView
      */
     @Override
     protected MyViewHolder onCreateViewHolder(boolean isEditor) {
-        System.out.println(TAG + "onCreateViewHolder: " + " isEditor=" + isEditor +
+        if (isLogging) System.out.println(TAG + "onCreateViewHolder: " + " isEditor=" + isEditor +
                 " listViewController=" + listViewController);
 
         ItemController controller = new ItemController(listViewController, useCase, 0);
+
         return new MyViewHolder(controller, controller.getView());
     }
 
@@ -102,7 +103,9 @@ public class MyGenericListView
                                     int index,
                                     boolean isEditor) {
 
-        System.out.println(TAG + "onBindViewHolder: " + "listViewController=" + listViewController);
+        if (isLogging) System.out.println(
+                TAG + "onBindViewHolder: " + "listViewController=" + listViewController
+        );
 
         MyModel model = useCase.getModels().get(index);
         viewHolder.itemController = new ItemController(listViewController, useCase, index);
@@ -110,9 +113,11 @@ public class MyGenericListView
         viewHolder.itemView.bindModel(model);
 
 
-        System.out.println(TAG + "onBindViewHolder: " + " binding model:" + model);
+        if (isLogging) System.out.println(
+                TAG + "onBindViewHolder: " + " binding model:" + model
+        );
 
-//        if (isEditor) useCase.addModelListener(viewHolder.itemView);
+        if (isEditor) useCase.addModelListener(viewHolder.itemView);
 
     }
 
@@ -139,7 +144,9 @@ public class MyGenericListView
             index = size -1;
         }
 
-        if (isLogging) System.out.println(TAG + "getValueAt: index=" + index + " useCase.getModels called");
+        if (isLogging) System.out.println(
+                TAG + "getValueAt: index=" + index + " useCase.getModels called"
+        );
         return useCase.getModels().get(index);
     }
 
@@ -163,9 +170,6 @@ public class MyGenericListView
 
     @Override
     protected int getItemCount() {
-//        if (isLogging) System.out.println(
-//                TAG + "getItemCount called"
-//        );
         return useCase.getItemCount();
     }
 }

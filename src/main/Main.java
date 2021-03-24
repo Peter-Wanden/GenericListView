@@ -24,15 +24,15 @@ public class Main {
     @SuppressWarnings("unused")
     private static final String TAG = "Main" + ": ";
 
-//    private final DataView dataView;
+    private final DataView dataView;
 
     public Main() {
         UseCaseObservableList useCase = new UseCaseObservableList();
         MyGenericListViewController controller = new MyGenericListViewController(useCase);
         ListViewParent parentView = new ListViewParent(controller);
 
-//        dataView = new DataView(useCase);
-//        setupRightFrame(parentView.getView());
+        dataView = new DataView(useCase);
+        setupRightFrame(parentView.getView());
 
         useCase.setModels(TestData.myModels);
     }
@@ -45,7 +45,7 @@ public class Main {
         );
 
         JFrame rightFrame = new JFrame();
-//        rightFrame.getContentPane().add(dataView.getView());
+        rightFrame.getContentPane().add(dataView.getView());
         rightFrame.setUndecorated(true);
         rightFrame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         rightFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

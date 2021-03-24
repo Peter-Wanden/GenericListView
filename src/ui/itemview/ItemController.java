@@ -30,7 +30,8 @@ public class ItemController
 
     private final List<FieldChangedListener> fieldChangedListeners;
 
-    private MyGenericListViewController listViewController;
+    private final UseCaseObservableList useCase;
+    private final MyGenericListViewController listViewController;
     private final ItemView view;
     private final int index;
 
@@ -42,6 +43,7 @@ public class ItemController
 
         this.listViewController = listViewController;
         this.index = index;
+        this.useCase = useCase;
 
         view = new ItemViewImpl(this, useCase);
         ((ItemViewImpl) view).createView();
@@ -55,11 +57,9 @@ public class ItemController
 
         if (ControlCommand.ADD_AS_MEMBER_COMMAND.name().equals(command)) {
             listViewController.addMembership(index);
-        }
-        else if (ControlCommand.REMOVE_MEMBER_COMMAND.name().equals(command)) {
+        } else if (ControlCommand.REMOVE_MEMBER_COMMAND.name().equals(command)) {
             listViewController.removeMembership(index);
-        }
-        else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
+        } else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
             ((ItemViewImpl) view).removeViewListeners();
             removeFieldChangedListener(listViewController);
             listViewController.deleteMember(index);
@@ -68,20 +68,23 @@ public class ItemController
 
     @Override
     public void textChanged(JTextComponent source) {
+        MyModel newValue = useCase.getModels().get(index);
 
         String newText = source.getText();
         String componentName = source.getName();
 
-        if (FieldName.FIRST_NAME.name().equals(componentName)) {
+        if (FieldName.FIRST_NAME.name().equals(componentName) &&
+                !newValue.getFirstName().equals(newText)) {
             notifyFieldChangedListeners(FieldName.FIRST_NAME, newText);
-        }
-        else if (FieldName.LAST_NAME.name().equals(componentName)) {
+
+        } else if (FieldName.LAST_NAME.name().equals(componentName) &&
+                !newValue.getLastName().equals(newText)) {
             notifyFieldChangedListeners(FieldName.LAST_NAME, newText);
-        }
-        else if (FieldName.AGE.name().equals(componentName)) {
+
+        } else if (FieldName.AGE.name().equals(componentName) &&
+                !String.valueOf(newValue.getAge()).equals(newText)) {
             notifyFieldChangedListeners(FieldName.AGE, newText);
-        }
-        else {
+        } else {
             throw new UnsupportedOperationException(
                     "Source: " + source + " unknown for text: " + newText
             );
