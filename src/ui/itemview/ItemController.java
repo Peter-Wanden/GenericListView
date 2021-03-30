@@ -33,7 +33,7 @@ public class ItemController
     private final UseCaseObservableList useCase;
     private final MyGenericListViewController listViewController;
     private final ItemView view;
-    private final int index;
+    private int index;
 
     public ItemController(MyGenericListViewController listViewController,
                           UseCaseObservableList useCase,
@@ -45,7 +45,7 @@ public class ItemController
         this.index = index;
         this.useCase = useCase;
 
-        view = new ItemViewImpl(this, useCase);
+        view = new ItemViewImpl(this);
         ((ItemViewImpl) view).createView();
 
         addFieldChangedListener(listViewController);
@@ -60,6 +60,7 @@ public class ItemController
         } else if (ControlCommand.REMOVE_MEMBER_COMMAND.name().equals(command)) {
             listViewController.removeMembership(index);
         } else if (ControlCommand.DELETE_RECORD_COMMAND.name().equals(command)) {
+            System.out.println(TAG + "actionPerformed: Delete command. Cleaning up before deletion.");
             ((ItemViewImpl) view).removeViewListeners();
             removeFieldChangedListener(listViewController);
             listViewController.deleteMember(index);
@@ -73,6 +74,10 @@ public class ItemController
         String newText = source.getText();
         String componentName = source.getName();
 
+        System.out.println(TAG + "#textChanged: componentName=" + componentName +
+                " FieldName.FIRST_NAME=" + FieldName.FIRST_NAME.name() +
+                " areEqual=" + (FieldName.FIRST_NAME.name().equals(componentName)));
+
         if (FieldName.FIRST_NAME.name().equals(componentName) &&
                 !newValue.getFirstName().equals(newText)) {
             notifyFieldChangedListeners(FieldName.FIRST_NAME, newText);
@@ -84,10 +89,9 @@ public class ItemController
         } else if (FieldName.AGE.name().equals(componentName) &&
                 !String.valueOf(newValue.getAge()).equals(newText)) {
             notifyFieldChangedListeners(FieldName.AGE, newText);
-        } else {
-            throw new UnsupportedOperationException(
-                    "Source: " + source + " unknown for text: " + newText
-            );
+        }
+        else {
+            System.out.println(TAG + "#textChanged: unrecognised component name=" + componentName);
         }
     }
 
@@ -123,5 +127,9 @@ public class ItemController
 
     public int getIndex() {
         return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

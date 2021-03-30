@@ -4,7 +4,6 @@ import data.MyModel;
 import domain.FieldChangedListener;
 import domain.UseCaseObservableList;
 import domain.UseCaseObservableList.FieldName;
-import genericlistview.AbstractGenericListView;
 import genericlistview.ControlActionListener;
 import ui.itemview.ItemController;
 
@@ -41,10 +40,10 @@ public class MyGenericListViewController
     private final MyGenericListView listView;
 
     public MyGenericListViewController(UseCaseObservableList useCase) {
+
         this.useCase = useCase;
         listView = new MyGenericListView(useCase, this);
-        System.out.println(TAG + "constructor called:");
-
+        useCase.addModelListener(listView);
     }
 
     /**

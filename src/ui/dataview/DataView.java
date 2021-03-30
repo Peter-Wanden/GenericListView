@@ -12,7 +12,7 @@ public class DataView
 
     @SuppressWarnings("unused")
     private static final String TAG = "DataView";
-    private boolean isLogging = false;
+    private final boolean isLogging = false;
 
     static final String[] columnNames = {
             "First name",

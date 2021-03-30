@@ -3,6 +3,7 @@ package genericlistview;
 import genericlistview.AbstractGenericListView.ViewHolder;
 
 import javax.swing.*;
+import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -10,20 +11,34 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.util.ArrayList;
 
+/**
+ * <strong><a id="override">Implementation Note</a></strong>
+ * Implementers are required to provide an implementation of the view holder.
+ * The view holder need only return the view to be rendered, which can be
+ * any class extending {@link Component}
+ *
+ * @param <VIEW_HOLDER> your view holder implementation of {@link ViewHolder}
+ * @see ViewHolder
+ */
 @SuppressWarnings("unused")
 public abstract class AbstractGenericListView<
         VIEW_HOLDER extends ViewHolder
         >
         implements
         ModelListener,
-        TableModelListener {
+        TableModelListener,
+        CellEditorListener {
 
     private static final String TAG = "AbstractGenericListView" + ": ";
+    private final boolean isLogging = false;
 
+// region view holder
     /**
-     * Holds the view in a table cell. It is used by both the {@link Renderer}
-     * and {@link Editor} as a generic wrapper for the view.
+     * Holds the view that will be displayed in a table cell. It is used by
+     * both the {@link Renderer} and {@link Editor} as a generic wrapper for
+     * the view.
      */
     public abstract class ViewHolder {
 
@@ -33,7 +48,7 @@ public abstract class AbstractGenericListView<
         protected final Component view;
 
         /**
-         * @param view  the view to be rendered.
+         * @param view the view to be rendered.
          */
         public ViewHolder(Component view) {
 
@@ -61,41 +76,64 @@ public abstract class AbstractGenericListView<
          * within the view, post editing.
          */
         public abstract Object getModel();
-        
+
 
         /**
          * Hook method called just before the Editor closes the view. Now is a
          * good time to clean things up, such as removing listeners and
          * extracting any values in the ui controls, etc.
          */
-        public void prepareEditingStopped(){}
+        public void prepareEditingStopped() {
+            System.out.println(TAG + " prepareEditingStopped()" +
+                    " tableIsEditing=" + table.isEditing()
+            );
+        }
     }
+// endregion view holder
 
+// region renderer
     /**
      * Renders the view returned by the {@link ViewHolder} to the cell.
+     * Implementers of the abstract parent must also provide an implementation
+     * of this class.
+     * @see AbstractGenericListView
      */
     private class Renderer
             implements TableCellRenderer {
 
         private static final String TAG = "Renderer" + ": ";
 
-        private VIEW_HOLDER viewHolder;
-
         @Override
         public Component getTableCellRendererComponent(JTable table,
                                                        Object model,
                                                        boolean isSelected,
                                                        boolean hasFocus,
-                                                       int row,
+                                                       int index,
                                                        int column) {
 
-            if (viewHolder == null) {
-                viewHolder = onCreateViewHolder(false);
+
+            VIEW_HOLDER viewHolder = null;
+
+            if (index < recyclableViews.size()) {
+                viewHolder = recyclableViews.get(index);
             }
 
-            onBindViewHolder(
-                    viewHolder, row, false
-            );
+            if (viewHolder == null) {
+                viewHolder = onCreateViewHolder(index, false);
+                recyclableViews.add(index, viewHolder);
+
+                if (isLogging)
+                    recyclableViews.forEach(view_holder ->
+                        System.out.println(TAG + "getTableCellRendererComponent:" +
+                                " recyclable view=" +
+                                " view holder at:" +
+                                " hasModel=" + view_holder.getModel()
+                        )
+                );
+
+            } else {
+                onBindViewHolder(index, false, viewHolder);
+            }
 
             Component view = viewHolder.view;
             setViewHeight(view);
@@ -114,7 +152,9 @@ public abstract class AbstractGenericListView<
             }
         }
     }
+// endregion renderer
 
+// region editor
     /**
      * When a cell is selected this class renders the view for editing the data
      * model.
@@ -131,40 +171,58 @@ public abstract class AbstractGenericListView<
         public Component getTableCellEditorComponent(JTable table,
                                                      Object value,
                                                      boolean isSelected,
-                                                     int row,
+                                                     int index,
                                                      int column) {
-            if (viewHolder == null) {
-                viewHolder = onCreateViewHolder(true);
-            }
 
-            onBindViewHolder(
-                    viewHolder, row, true
-            );
+            viewHolder = null;
+
+            if (index < recyclableViews.size()) {
+                viewHolder = recyclableViews.get(index);
+            }
+            if (viewHolder == null) {
+                viewHolder = onCreateViewHolder(index, true);
+                recyclableViews.add(index, viewHolder);
+
+                recyclableViews.forEach(viewHolder ->
+                        System.out.println(TAG + "getTableCellEditorComponent: recyclable view=" +
+                                " view holder at:" +
+                                " hasModel=" + viewHolder.getModel()
+                        )
+                );
+
+            } else {
+                onBindViewHolder(index, true, viewHolder);
+            }
 
             return viewHolder.getView();
         }
 
         /**
-         * When editing of the cell is complete, i.e when {@link JTable#editingStopped(ChangeEvent)}
-         * method is triggered, it calls this method to get the edited values.
-         * So this is where you get the edited values from your view in the current instance
-         * the {@link ViewHolder}.
+         * When editing of the cell is complete, i.e when
+         * {@link JTable#editingStopped(ChangeEvent)} method is triggered, it
+         * calls this method to get the edited values. So this is where you get
+         * the edited values from your view in the current instance the
+         * {@link ViewHolder}.
          *
          * @return the model values in the view
          */
         @Override
         public Object getCellEditorValue() {
+            System.out.println(TAG + "getCellEditorValue: calling viewHolder.getModel()");
             return viewHolder.getModel();
         }
 
         @Override
         public boolean stopCellEditing() {
+            System.out.println(TAG + "stopCellEditing: table.isEditing=" + table.isEditing() +
+                    " calling: viewHolder.prepareEditingStopped()");
             viewHolder.prepareEditingStopped();
-            System.out.println(TAG + "AbstractEditor: isEditing=" + table.isEditing());
             return super.stopCellEditing();
         }
     }
+// endregion editor
 
+// region model
     /**
      * An implementation of {@link AbstractTableModel} that points to an
      * external data source.
@@ -208,12 +266,13 @@ public abstract class AbstractGenericListView<
         }
 
         /**
-         * Implements {@link AbstractTableModel#setValueAt(Object, int, int)} method.
-         * Called when the cell being edited looses focus. When this happens the
-         * {@link Editor#getCellEditorValue()} method is called, which in turn calls
-         * the {@link ViewHolder#getModel()} method, delegating the task of getting
-         * the current views values and placing them in a model. The model
-         * is then passed to the implementer for processing.
+         * Implements {@link AbstractTableModel#setValueAt(Object, int, int)}
+         * method. Called when the cell being edited looses focus. When this
+         * happens the {@link Editor#getCellEditorValue()} method is called,
+         * which in turn calls the {@link ViewHolder#getModel()} method,
+         * delegating the task of getting the current views values and placing
+         * them in a model. The model is then passed to the implementer for
+         * processing.
          *
          * @param model       the updated model.
          * @param rowIndex    the row or index of the item in the data model.
@@ -227,6 +286,7 @@ public abstract class AbstractGenericListView<
             AbstractGenericListView.this.setValueAt(rowIndex, model);
         }
     }
+// endregion model
 
     private static final String COLUMN_NAME = "COLUMN_NAME";
     private static final int COLUMN_NUMBER = 0;
@@ -234,19 +294,23 @@ public abstract class AbstractGenericListView<
     private final JTable table;
     private final AbstractTableModel tableModel;
     private final JScrollPane view;
+    protected final ArrayList<VIEW_HOLDER> recyclableViews;
+    private final Editor editor;
 
     protected AbstractGenericListView() {
-        System.out.println(TAG + "constructor called.");
 
         tableModel = new GenericTableModel();
         table = new JTable();
         view = new JScrollPane(table);
+        recyclableViews = new ArrayList<>();
+        editor = new Editor();
+        editor.addCellEditorListener(this);
 
-        setupTable();
+        initialiseTable();
         addListeners();
     }
 
-    private void setupTable() {
+    private void initialiseTable() {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setIntercellSpacing(new Dimension(5, 5));
         table.setModel(tableModel);
@@ -256,47 +320,49 @@ public abstract class AbstractGenericListView<
         table.setOpaque(true);
 
         table.setDefaultRenderer(ViewHolder.class, new Renderer());
-        table.setDefaultEditor(ViewHolder.class, new Editor());
+        table.setDefaultEditor(ViewHolder.class, editor);
     }
 
     private void addListeners() {
         tableModel.addTableModelListener(this);
+
     }
 
 // region abstract methods
 
     /**
-     * When the table is creating its {@link Renderer} and {@link Editor},
-     * which it does only once for each, it calls this method so that the
-     * implementer may provide a ViewHolder. Implementers should place their
-     * view into the ViewHolder. The <code>isEditor</code> boolean tells the
-     * implementer if the {@link ViewHolder}'s view should return the editor
-     * view or the renderer view. Both views can be the same type.
+     * When a view is created with this method it is stored in the
+     * <code>recyclableViews</code> hash table instance variable with the
+     * models index as the key. When the Editor or Renderer is invoked to
+     * provide a view, if the view does not exist this method is called. If the
+     * view exists the {@link #onBindViewHolder} method is called.
      *
-     * @param isEditor true if the view holder should contain the editor
-     *                 {@link Editor} view.
-     * @return your ViewHolder concrete class with your view.
+     * @param index the index of the model in the underlying data.
+     * @param isEditor if the view to return is about to be edited.
+     * @return the ViewHolder containing the view.
+     * @see Editor
+     * @see Renderer
+     * @see ViewHolder
      */
-    protected abstract VIEW_HOLDER onCreateViewHolder(final boolean isEditor);
+    protected abstract VIEW_HOLDER onCreateViewHolder(final int index,
+                                                      final boolean isEditor
+    );
 
     /**
      * Called by the underlying table to display the data at the specified
      * index. This method should update the contents of the
      * {@link ViewHolder#view} to reflect the item at the given index.
-     * <p>
-     *
-     * @param viewHolder The ViewHolder which should be updated to represent
-     *                   the contents of the item at the given index in the
-     *                   data set.
      * @param index      The index of the item within the data set.
+     * @param isEditor   Tells the implementer if the view returned should
+     *                   be editable.
      */
-    protected abstract void onBindViewHolder(final VIEW_HOLDER viewHolder,
-                                             final int index,
-                                             final boolean isEditor
+    protected abstract void onBindViewHolder(final int index,
+                                                    final boolean isEditor,
+                                                    final VIEW_HOLDER viewHolder
     );
 
     /**
-     * Called by the list model (TableModel) while rendering views.
+     * Called by the list model while rendering views.
      *
      * @param index the index of the item in the supplied data.
      * @return returns the data model representing the index.
@@ -304,7 +370,7 @@ public abstract class AbstractGenericListView<
     protected abstract Object getValueAt(int index);
 
     /**
-     * Informs the table model of the amount of items in the data
+     * Informs model of the amount of items in the data
      *
      * @return the number of data models in your list.
      */
@@ -312,8 +378,8 @@ public abstract class AbstractGenericListView<
 
     /**
      * Called when editing stops. Passes the value of the object collected by
-     * the {@link Editor#getCellEditorValue}. This is generally an updated data
-     * model.
+     * the {@link Editor#getCellEditorValue}. This is generally the data model
+     * just updated in the Editors view.
      *
      * @param index the index of the data model being edited.
      * @param value the edited value of the data model as provided by
@@ -324,22 +390,43 @@ public abstract class AbstractGenericListView<
     );
 // endregion abstract methods
 
-// region data change notifications
+// region implements CellEditorListener
+
+    @Override
+    public void editingStopped(ChangeEvent e) {
+        System.out.println(TAG + "CellEditorListener: editingStopped: ChangeEvent=" + e);
+    }
+
+    @Override
+    public void editingCanceled(ChangeEvent e) {
+        System.out.println(TAG + "CellEditorListener: editingStopped: ChangeEvent=" + e);
+    }
+
+// endregion implements CellEditorListener
+
+// region implements ModelListener
+    /*
+    The following methods implement the ModelListener interface. This
+    interface's contract is designed to be enforced by an external data source
+    who calls these methods as required to keep the view in sync with the
+    underlying data source.
+     */
 
     /**
      * Delegate method that informs the table model of a change in the source
      * data.
-     * Implements {@link ModelListener#notifyDatasetChanged()}
+     * @see ModelListener
      */
     @Override
     public void notifyDatasetChanged() {
+        System.out.println(TAG + "notifyDatasetChanged: ");
         tableModel.fireTableDataChanged();
     }
 
     /**
      * Delegate method that informs the table model the table structure has
      * changed.
-     * Implements {@link ModelListener#notifyDataStructureChanged()}.
+     * @see ModelListener
      */
     @Override
     public void notifyDataStructureChanged() {
@@ -349,10 +436,9 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a change in the source
      * data.
-     * Implements {@link ModelListener#notifyItemsInserted(int, int)}
-     *
      * @param firstIndex the inclusive index of the first row of data inserted.
      * @param lastIndex  the inclusive index of the last row of data inserted.
+     * @see ModelListener
      */
     @Override
     public void notifyItemsInserted(int firstIndex, int lastIndex) {
@@ -362,12 +448,12 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a change in the source
      * data.
-     * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
      *
      * @param firstIndex the inclusive index of the first item in the source
      *                   data to be updated.
      * @param lastIndex  the inclusive index of the last item in the source
      *                   data to be updated.
+     * @see ModelListener
      */
     @Override
     public void notifyItemsUpdated(int firstIndex,
@@ -378,9 +464,9 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a single item has been
      * updated in the source data.
-     * Implements {@link ModelListener#notifyItemsUpdated(int, int)}
-     *
      * @param index the index of the updated item in the source data
+     *
+     * @see ModelListener
      */
     @Override
     public void notifyItemUpdated(int index) {
@@ -389,57 +475,119 @@ public abstract class AbstractGenericListView<
 
     /**
      * Delegate method that informs the table model of a change in the source data.
-     * Implements {@link ModelListener#notifyItemsDeleted(int, int)}
-     *
      * @param firstIndex the inclusive index of the first row in the source data to be deleted.
      * @param lastIndex  the inclusive index of the last row in the source data to be deleted
+     * @see ModelListener
      */
     @Override
-    public void notifyItemsDeleted(int firstIndex, int lastIndex) {
+    public void notifyItemsDeleted(final int firstIndex,
+                                   final int lastIndex) {
+
+        System.out.println(TAG + "notifyItemsDeleted: " +
+                " firstIndex=" + firstIndex +
+                " lastIndex=" + lastIndex);
+
         tableModel.fireTableRowsDeleted(firstIndex, lastIndex);
-
     }
-// endregion data change notifications.
+// endregion implements ModelListener
 
+// region implements TableModelListener
     /**
-     * Implements {@link TableModelListener}. This fine grain notification tells listeners
-     * the exact range of cells, rows, or columns that changed.
+     * This fine grain notification tells listeners the exact range of cells,
+     * rows, or columns that changed.
      *
      * @param e the event, containing the location of the changed model.
+     * @see TableModelListener
      */
     @Override
     public void tableChanged(TableModelEvent e) {
+        int eventType = e.getType();
 
-        if (TableModelEvent.DELETE == e.getType()) {
-            // If the cell or cells being edited are within the range of the cells that have
-            // been been changed, as declared in the table event, then editing must either
-            // be cancelled or stopped.
+        if (TableModelEvent.DELETE == eventType) {
+            System.out.println(TAG + "tableChanged: event=DELETE");
+            // If the cell being edited is within the range of the cells that
+            // have been deleted then editing must be either cancelled and the
+            // view holder set to null or recycled.
             if (table.isEditing()) {
-                TableCellEditor editor = table.getDefaultEditor(ViewHolder.class);
+//                TableCellEditor editor = table.getDefaultEditor(ViewHolder.class);
+                TableCellEditor editor = table.getCellEditor();
                 if (editor != null) {
-                    // the coordinate of the cell being edited.
+                    // The coordinate of the cell being edited.
                     int editingColumn = table.getEditingColumn();
                     int editingRow = table.getEditingRow();
 
-                    // the inclusive coordinates of the cells that have changed.
+                    // The inclusive coordinates of the cells that have changed.
                     int changedColumn = e.getColumn();
                     int firstRowChanged = e.getFirstRow();
                     int lastRowChanged = e.getLastRow();
 
-                    // returns true if the cell being edited is in the range of cells changed
+                    // Returns true if the cell being edited is in the range of
+                    // cells deleted.
                     boolean editingCellInRangeOfChangedCells =
                             (TableModelEvent.ALL_COLUMNS == changedColumn ||
                                     changedColumn == editingColumn) &&
                                     editingRow >= firstRowChanged &&
                                     editingRow <= lastRowChanged;
 
+
                     if (editingCellInRangeOfChangedCells) {
+                        // Clean up view and view holder
                         editor.cancelCellEditing();
+                        if (table.getCellEditor() != null) {
+                            // Cell editor did not concede control, forcefully
+                            // remove it.
+                            table.removeEditor();
+                        }
+                        VIEW_HOLDER viewHolder = recyclableViews.remove(editingRow);
+
+                        // remove the last element in the recyclable views or delete the range
+
+
+                        System.out.println(TAG + "tableChanged: removed viewHolder=" + viewHolder.getModel());
+                        viewHolder = null;
+                        System.out.println(TAG + "tableChanged: viewHolder=" + viewHolder);
+
+                        System.out.println(TAG + "tableChanged:" +
+                                " editingCellInRangeOfDeletedCells=" + editingCellInRangeOfChangedCells +
+                                " editing has been cancelled. ViewHolder has been removed from recyclable views");
+
+                        recyclableViews.forEach(vh ->
+                                System.out.println(TAG + "tableChanged: " +
+                                        "view holder at:" +
+                                        " hasModel=" + vh.getModel()
+                                )
+                        );
+
                     }
                 }
             }
+        } else if (TableModelEvent.UPDATE == eventType) {
+            // The inclusive coordinates of the cells that have changed.
+            int changedColumn = e.getColumn();
+            int firstRowChanged = e.getFirstRow();
+            int lastRowChanged = e.getLastRow();
+            recyclableViews.ensureCapacity(getItemCount());
+
+            System.out.println(TAG + "tableChanged: event=UPDATE" +
+                    " firstRowChanged:" + firstRowChanged +
+                    " lastRowChanged:" + lastRowChanged
+            );
+
+        } else if (TableModelEvent.INSERT == eventType) {
+            // The inclusive coordinates of the cells that have changed.
+            int changedColumn = e.getColumn();
+            int firstRowChanged = e.getFirstRow();
+            int lastRowChanged = e.getLastRow();
+
+            System.out.println(TAG + "tableChanged: event=INSERT" +
+                    " firstRowChanged:" + firstRowChanged +
+                    " lastRowChanged:" + lastRowChanged
+            );
+        } else {
+            System.out.println(TAG + "tableChanged: event=" + eventType);
         }
     }
+// endregion implements TableModelListener
 
 // region getters and setters
 

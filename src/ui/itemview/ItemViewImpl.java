@@ -1,12 +1,14 @@
 package ui.itemview;
 
 import data.MyModel;
-import domain.UseCaseObservableList;
-import genericlistview.ModelListenerAdapter;
 import utils.RoundedPanel;
 import utils.TextListener;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
 
 import static ui.mylistview.MyGenericListViewController.ControlCommand;
 
@@ -20,24 +22,21 @@ public class ItemViewImpl
     private final ControlsView controlsView;
     private final JPanel view;
 
-    private final UseCaseObservableList useCase;
     private final ItemController controller;
     private final TextListener[] textListeners = new TextListener[3];
     private MyModel model;
 
-    public ItemViewImpl(ItemController controller,
-                        UseCaseObservableList useCase) {
+    public ItemViewImpl(ItemController controller) {
 
         view = new RoundedPanel(30);
         view.setOpaque(true);
         controlsView = new ControlsView();
         formView = new FormView();
 
-        this.useCase = useCase;
         this.controller = controller;
 
-        addViewListeners();
         addControlCommands();
+        addViewListeners();
     }
 
     public void createView() {
@@ -53,30 +52,23 @@ public class ItemViewImpl
         view.add(splitPane);
     }
 
-// region model changed listeners
-
-    /**
-     * Implements {@link ModelListenerAdapter}'. This item is listening for
-     * updates to the model supplied by the domain {@link UseCaseObservableList}.
-     *
-     * @param index the index of the item in the data model that has changed.
-     */
-    @Override
-    public void notifyItemUpdated(int index) {
-        if (controller.getIndex() == index) {
-            // if the model has changed, update it
-            System.out.println(TAG + "notifyItemUpdated=" + useCase.getModels().get(index));
-            bindModel(useCase.getModels().get(index));
-        }
+    private void addControlCommands() {
+        controlsView.getAddMemberButton().setActionCommand(
+                ControlCommand.ADD_AS_MEMBER_COMMAND.name()
+        );
+        controlsView.getRemoveMemberButton().setActionCommand(
+                ControlCommand.REMOVE_MEMBER_COMMAND.name()
+        );
+        controlsView.getDeleteButton().setActionCommand(
+                ControlCommand.DELETE_RECORD_COMMAND.name()
+        );
     }
-// endregion model changed listeners
 
 // region view event listeners
 
     /**
      * Adds listeners interested in changes to values in the
-     * views components that may change values in the data
-     * model.
+     * views components.
      */
     private void addViewListeners() {
         addFormViewListeners();
@@ -129,18 +121,6 @@ public class ItemViewImpl
         controlsView.getDeleteButton().removeActionListener(controller);
     }
 
-    private void addControlCommands() {
-        controlsView.getAddMemberButton().setActionCommand(
-                ControlCommand.ADD_AS_MEMBER_COMMAND.name()
-        );
-        controlsView.getRemoveMemberButton().setActionCommand(
-                ControlCommand.REMOVE_MEMBER_COMMAND.name()
-        );
-        controlsView.getDeleteButton().setActionCommand(
-                ControlCommand.DELETE_RECORD_COMMAND.name()
-        );
-    }
-
 // endregion view event listeners
 
     /**
@@ -149,7 +129,6 @@ public class ItemViewImpl
      *
      * @param model the model with values to be bound.
      */
-    @Override
     public void bindModel(Object model) {
         MyModel newModel;
         MyModel oldModel;
@@ -158,23 +137,33 @@ public class ItemViewImpl
         oldModel = this.model == null ? new MyModel() : this.model;
 
         if (!oldModel.equals(newModel)) {
-            removeViewListeners();
-
             this.model = newModel;
 
             boolean firstNameChanged = !newModel.getFirstName().equals(oldModel.getFirstName());
             if (firstNameChanged) {
-                formView.getFirstNameField().setText(newModel.getFirstName());
+                updateTextField(
+                        newModel.getFirstName(),
+                        formView.getFirstNameField(),
+                        textListeners[0]
+                );
             }
 
             boolean lastNameChanged = !newModel.getLastName().equals(oldModel.getLastName());
             if (lastNameChanged) {
-                formView.getFirstNameField().setText(newModel.getLastName());
+                updateTextField(
+                        newModel.getLastName(),
+                        formView.getLastNameField(),
+                        textListeners[1]
+                );
             }
 
             boolean ageChanged = newModel.getAge() != oldModel.getAge();
             if (ageChanged) {
-                formView.getAgeField().setText(String.valueOf(newModel.getAge()));
+                updateTextField(
+                        String.valueOf(newModel.getAge()),
+                        formView.getAgeField(),
+                        textListeners[2]
+                );
             }
 
             boolean isMemberChanged = oldModel.isMember() != newModel.isMember();
@@ -182,9 +171,29 @@ public class ItemViewImpl
                 controlsView.getIsMemberCheckBox().setSelected(newModel.isMember());
             }
 
-            addViewListeners();
             System.out.println(TAG + "bindModel:" + " model=" + model);
         }
+    }
+
+    private void updateTextField(String newText,
+                                 JTextComponent component,
+                                 TextListener listener) {
+
+        int caretPosition = Math.min(
+                newText.length(), component.getCaretPosition()
+        );
+        Document document = component.getDocument();
+
+        document.removeDocumentListener(listener);
+        document = new PlainDocument();
+        try {
+            document.insertString(0, newText, null);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+        component.setDocument(document);
+        component.setCaretPosition(caretPosition);
+        document.addDocumentListener(listener);
     }
 
     @Override
@@ -220,5 +229,9 @@ public class ItemViewImpl
     @Override
     public JPanel getView() {
         return view;
+    }
+
+    public ItemController getController() {
+        return controller;
     }
 }

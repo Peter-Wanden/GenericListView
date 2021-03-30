@@ -10,14 +10,13 @@ import java.util.List;
 /**
  * Represents a single source of truth for the data models.
  */
-//@SuppressWarnings("HardCodedStringLiteral")
 public class UseCaseObservableList
         implements
         ModelListener,
         FieldChangedListener {
 
     private static final String TAG = "UseCaseObservableList" + ": ";
-    private boolean isLogging = true;
+    private final boolean isLogging = true;
 
     /**
      * Used by components to identify data fields/components etc. in the
@@ -29,7 +28,7 @@ public class UseCaseObservableList
         AGE
     }
 
-    // a list of listeners interested to changes to the models
+    // a list of listeners interested in changes to the models
     private final List<ModelListener> modelListeners;
     // the source data
     private final List<MyModel> models = new ArrayList<>();
@@ -38,7 +37,7 @@ public class UseCaseObservableList
         modelListeners = new ArrayList<>();
     }
 
-//region update model
+// region update model
 
     /**
      * Implements {@link FieldChangedListener}. An incoming change to a
@@ -197,10 +196,8 @@ public class UseCaseObservableList
                             MyModel updatedModel) {
 
         if (isLogging) System.out.println(TAG + "updateModel: index=" + index +
-                " updatedModel=" + updatedModel);
-
-
-        if (isLogging) System.out.println(TAG + "updateModel: getItemCount called");
+                " updatedModel=" + updatedModel +
+                " This method of updating is currently turned off!");
         // edge case index is out of range
         if (getItemCount() > index) {
 
@@ -247,12 +244,13 @@ public class UseCaseObservableList
      * {@link #notifyItemsUpdated(int, int)}
      */
     public void notifyItemUpdated(int index) {
-        if (isLogging) System.out.println(TAG + "notifyItemUpdated: there are: " + modelListeners.size() + " to update");
+        if (isLogging)
+            System.out.println(TAG + "notifyItemUpdated: there are: " + modelListeners.size() + " to update");
         modelListeners.forEach(listener -> listener.notifyItemUpdated(index));
     }
-    // endregion update model
+// endregion update model
 
-    // region insert member
+// region insert member
     public void addNewMember() {
         int index = models.size();
 
@@ -287,9 +285,9 @@ public class UseCaseObservableList
                 listener.notifyItemsInserted(firstIndex, lastIndex)
         );
     }
-    // endregion insert member
+// endregion insert member
 
-    // region delete member
+// region delete member
     public void deleteModel(int index) {
         if (isLogging) System.out.println(TAG + "deleteModel:" +
                 " at index=" + index);
@@ -311,17 +309,17 @@ public class UseCaseObservableList
                 listener.notifyItemsDeleted(firstIndex, lastIndex)
         );
     }
-    // endregion delete member
+// endregion delete member
 
     /**
      * Modifiable operations are blocked to the requester as, if an external
-     * source performs any mutation, observers will not be notified. Although this
-     * function returns an unmodifiable list, it will mutate, as this class
-     * performs actions on the underlying observable list. This is because
-     * {@link Collections#unmodifiableList} returns a 'window' to the underlying
-     * list and blocks any modifiable operations.
+     * source performs any mutation, observers will not be notified. Although
+     * this function returns an unmodifiable list, it will mutate, as this
+     * class performs actions on the underlying observable list. This is
+     * because {@link Collections#unmodifiableList} returns a 'window' to the
+     * underlying list and blocks any modifiable operations.
      *
-     * @return An unmodifiable set is returned to keep the ability to mutate the list
+     * @return An unmodifiable set in order to keep the ability to mutate data
      * within this class.
      */
     public List<MyModel> getModels() {
@@ -346,7 +344,10 @@ public class UseCaseObservableList
      */
     @Override
     public void notifyDatasetChanged() {
-        if (isLogging) System.out.println(TAG + "notifyDatasetChanged: notifying " + modelListeners.size() + " listeners.");
+        if (isLogging) System.out.println(
+                TAG + "notifyDatasetChanged:" +
+                        " notifying " + modelListeners.size() + " listeners.");
+
         modelListeners.forEach(ModelListener::notifyDatasetChanged);
     }
 
@@ -355,7 +356,10 @@ public class UseCaseObservableList
      */
     @Override
     public void notifyDataStructureChanged() {
-        if (isLogging) System.out.println(TAG + "notifyDataStructureChanged: notifying: " + modelListeners.size() + " listeners.");
+        if (isLogging) System.out.println(
+                TAG + "notifyDataStructureChanged: " +
+                        "notifying: " + modelListeners.size() + " listeners.");
+
         modelListeners.forEach(ModelListener::notifyDataStructureChanged);
     }
 
