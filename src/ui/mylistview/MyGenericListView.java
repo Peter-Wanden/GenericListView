@@ -101,19 +101,18 @@ public class MyGenericListView
                                     boolean isEditor,
                                     MyViewHolder viewHolder) {
 
-        if (isLogging)
-            System.out.println(TAG + "onBindViewHolder: " + "for index: " + index + " isEditor=" + isEditor);
-
         MyModel newModel = useCase.getModels().get(index);
         MyModel oldModel = (MyModel) viewHolder.getModel();
+        ItemViewImpl view = (ItemViewImpl)viewHolder.itemView;
+        ItemController controller = view.getController();
 
         if (!newModel.equals(oldModel)) {
-            // todo don't forget to update the values in the controller!!!
-            ItemViewImpl view = (ItemViewImpl)viewHolder.itemView;
             view.removeViewListeners();
             view.bindModel(newModel);
+            view.addViewListeners();
+        }
 
-            ItemController controller = view.getController();
+        if (controller.getIndex() != index) {
             controller.setIndex(index);
         }
 

@@ -111,6 +111,7 @@ public abstract class AbstractGenericListView<
                                                        int index,
                                                        int column) {
 
+            boolean isRecycled = false;
 
             VIEW_HOLDER viewHolder = null;
 
@@ -132,11 +133,15 @@ public abstract class AbstractGenericListView<
                 );
 
             } else {
+                isRecycled = true;
                 onBindViewHolder(index, false, viewHolder);
             }
 
             Component view = viewHolder.view;
             setViewHeight(view);
+
+            System.out.println(TAG + "getTableCellRenderer: rendering model=" + model +
+                    " isRecycled=" + isRecycled);
 
             return view;
         }
@@ -169,10 +174,12 @@ public abstract class AbstractGenericListView<
 
         @Override
         public Component getTableCellEditorComponent(JTable table,
-                                                     Object value,
+                                                     Object model,
                                                      boolean isSelected,
                                                      int index,
                                                      int column) {
+
+            System.out.println(TAG + "getTableCellEditor: rendering model:=" + model);
 
             viewHolder = null;
 

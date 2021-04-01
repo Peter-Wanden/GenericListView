@@ -70,7 +70,7 @@ public class ItemViewImpl
      * Adds listeners interested in changes to values in the
      * views components.
      */
-    private void addViewListeners() {
+    public void addViewListeners() {
         addFormViewListeners();
         addControlListeners();
     }
