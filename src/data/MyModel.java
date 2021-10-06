@@ -43,7 +43,7 @@ public class MyModel {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MyModel model = (MyModel) o;
+        var model = (MyModel) o;
         return age == model.age &&
                 isMember == model.isMember &&
                 Objects.equals(firstName, model.firstName) &&

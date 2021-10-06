@@ -23,9 +23,8 @@ import java.util.ArrayList;
  * @see ViewHolder
  */
 @SuppressWarnings("unused")
-public abstract class AbstractGenericListView<
-        VIEW_HOLDER extends ViewHolder
-        >
+public abstract class AbstractGenericListView
+        <VIEW_HOLDER extends ViewHolder>
         implements
         ModelListener,
         TableModelListener,
@@ -35,6 +34,7 @@ public abstract class AbstractGenericListView<
     private final boolean isLogging = false;
 
 // region view holder
+
     /**
      * Holds the view that will be displayed in a table cell. It is used by
      * both the {@link Renderer} and {@link Editor} as a generic wrapper for
@@ -51,7 +51,6 @@ public abstract class AbstractGenericListView<
          * @param view the view to be rendered.
          */
         public ViewHolder(Component view) {
-
             if (view == null) {
                 throw new IllegalArgumentException("item view may not be null");
             }
@@ -92,10 +91,12 @@ public abstract class AbstractGenericListView<
 // endregion view holder
 
 // region renderer
+
     /**
      * Renders the view returned by the {@link ViewHolder} to the cell.
      * Implementers of the abstract parent must also provide an implementation
      * of this class.
+     *
      * @see AbstractGenericListView
      */
     private class Renderer
@@ -125,19 +126,19 @@ public abstract class AbstractGenericListView<
 
                 if (isLogging)
                     recyclableViews.forEach(view_holder ->
-                        System.out.println(TAG + "getTableCellRendererComponent:" +
-                                " recyclable view=" +
-                                " view holder at:" +
-                                " hasModel=" + view_holder.getModel()
-                        )
-                );
+                            System.out.println(TAG + "getTableCellRendererComponent:" +
+                                    " recyclable view=" +
+                                    " view holder at:" +
+                                    " hasModel=" + view_holder.getModel()
+                            )
+                    );
 
             } else {
                 isRecycled = true;
                 onBindViewHolder(index, false, viewHolder);
             }
 
-            Component view = viewHolder.view;
+            var view = (Component) viewHolder.view;
             setViewHeight(view);
 
             System.out.println(TAG + "getTableCellRenderer: rendering model=" + model +
@@ -160,6 +161,7 @@ public abstract class AbstractGenericListView<
 // endregion renderer
 
 // region editor
+
     /**
      * When a cell is selected this class renders the view for editing the data
      * model.
@@ -221,8 +223,10 @@ public abstract class AbstractGenericListView<
 
         @Override
         public boolean stopCellEditing() {
-            System.out.println(TAG + "stopCellEditing: table.isEditing=" + table.isEditing() +
-                    " calling: viewHolder.prepareEditingStopped()");
+            System.out.println(TAG
+                    + "stopCellEditing: table.isEditing=" + table.isEditing()
+                    + " calling: viewHolder.prepareEditingStopped()"
+            );
             viewHolder.prepareEditingStopped();
             return super.stopCellEditing();
         }
@@ -230,6 +234,7 @@ public abstract class AbstractGenericListView<
 // endregion editor
 
 // region model
+
     /**
      * An implementation of {@link AbstractTableModel} that points to an
      * external data source.
@@ -332,7 +337,6 @@ public abstract class AbstractGenericListView<
 
     private void addListeners() {
         tableModel.addTableModelListener(this);
-
     }
 
 // region abstract methods
@@ -344,7 +348,7 @@ public abstract class AbstractGenericListView<
      * provide a view, if the view does not exist this method is called. If the
      * view exists the {@link #onBindViewHolder} method is called.
      *
-     * @param index the index of the model in the underlying data.
+     * @param index    the index of the model in the underlying data.
      * @param isEditor if the view to return is about to be edited.
      * @return the ViewHolder containing the view.
      * @see Editor
@@ -359,13 +363,14 @@ public abstract class AbstractGenericListView<
      * Called by the underlying table to display the data at the specified
      * index. This method should update the contents of the
      * {@link ViewHolder#view} to reflect the item at the given index.
-     * @param index      The index of the item within the data set.
-     * @param isEditor   Tells the implementer if the view returned should
-     *                   be editable.
+     *
+     * @param index    The index of the item within the data set.
+     * @param isEditor Tells the implementer if the view returned should
+     *                 be editable.
      */
     protected abstract void onBindViewHolder(final int index,
-                                                    final boolean isEditor,
-                                                    final VIEW_HOLDER viewHolder
+                                             final boolean isEditor,
+                                             final VIEW_HOLDER viewHolder
     );
 
     /**
@@ -422,6 +427,7 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a change in the source
      * data.
+     *
      * @see ModelListener
      */
     @Override
@@ -433,6 +439,7 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model the table structure has
      * changed.
+     *
      * @see ModelListener
      */
     @Override
@@ -443,6 +450,7 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a change in the source
      * data.
+     *
      * @param firstIndex the inclusive index of the first row of data inserted.
      * @param lastIndex  the inclusive index of the last row of data inserted.
      * @see ModelListener
@@ -471,8 +479,8 @@ public abstract class AbstractGenericListView<
     /**
      * Delegate method that informs the table model of a single item has been
      * updated in the source data.
-     * @param index the index of the updated item in the source data
      *
+     * @param index the index of the updated item in the source data
      * @see ModelListener
      */
     @Override
@@ -482,6 +490,7 @@ public abstract class AbstractGenericListView<
 
     /**
      * Delegate method that informs the table model of a change in the source data.
+     *
      * @param firstIndex the inclusive index of the first row in the source data to be deleted.
      * @param lastIndex  the inclusive index of the last row in the source data to be deleted
      * @see ModelListener
@@ -499,6 +508,7 @@ public abstract class AbstractGenericListView<
 // endregion implements ModelListener
 
 // region implements TableModelListener
+
     /**
      * This fine grain notification tells listeners the exact range of cells,
      * rows, or columns that changed.

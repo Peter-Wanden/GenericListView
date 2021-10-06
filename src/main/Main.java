@@ -27,9 +27,9 @@ public class Main {
 //    private final DataView dataView;
 
     public Main() {
-        UseCaseObservableList useCase = new UseCaseObservableList();
-        MyGenericListViewController controller = new MyGenericListViewController(useCase);
-        ListViewParent parentView = new ListViewParent(controller);
+        var useCase = new UseCaseObservableList();
+        var controller = new MyGenericListViewController(useCase);
+        var parentView = new ListViewParent(controller);
 
 //        dataView = new DataView(useCase);
 //        setupRightFrame(parentView.getView());

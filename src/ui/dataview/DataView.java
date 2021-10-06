@@ -49,11 +49,13 @@ public class DataView
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
 
-            if (isLogging) System.out.println(
-                    TAG + "getValueAt: " + "useCase: getModels called."
-            );
+            if (isLogging) {
+                System.out.println(
+                        TAG + "getValueAt: " + "useCase: getModels called."
+                );
+            }
 
-            MyModel myModel = useCase.getModels().get(rowIndex);
+            var myModel = (MyModel) useCase.getModels().get(rowIndex);
             switch (columnIndex) {
                 case 0 -> {return myModel.getFirstName();}
                 case 1 -> {return myModel.getLastName();}
@@ -76,7 +78,6 @@ public class DataView
         table.setModel(tableModel);
         table.setFillsViewportHeight(true);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setFillsViewportHeight(true);
         table.setOpaque(true);
     }
 

@@ -66,13 +66,13 @@ public class UseCaseObservableList
     private void firstNameFieldChanged(int index,
                                        String firstName) {
 
-        MyModel oldModel = models.get(index);
+        var oldModel = (MyModel) models.get(index);
         boolean isChanged = !oldModel.getFirstName().equals(firstName);
 
 //        if (isLogging) System.out.println(TAG + "firstNameChanged: isChanged=" + isChanged);
 
         if (isChanged) {
-            MyModel updatedModel = new MyModel(
+            var updatedModel = new MyModel(
                     firstName,
                     oldModel.getLastName(),
                     oldModel.getAge(),
@@ -86,19 +86,20 @@ public class UseCaseObservableList
     private void lastNameChanged(int index,
                                  String lastName) {
 
-        MyModel oldModel = models.get(index);
+        var oldModel = (MyModel) models.get(index);
         boolean isChanged = !oldModel.getLastName().equals(lastName);
 
 //        if (isLogging) System.out.println(TAG + "lastNameChanged: isChanged=" + isChanged);
 
         if (isChanged) {
-            MyModel updatedModel = new MyModel(
+            var updatedModel = new MyModel(
                     oldModel.getFirstName(),
                     lastName,
                     oldModel.getAge(),
                     oldModel.isMember()
             );
             models.set(index, updatedModel);
+
             notifyItemUpdated(index);
         }
     }
@@ -106,14 +107,14 @@ public class UseCaseObservableList
     private void ageChanged(int index,
                             String age) {
 
-        MyModel oldModel = models.get(index);
-        String oldAge = String.valueOf(oldModel.getAge());
+        var oldModel = (MyModel) models.get(index);
+        var oldAge = (String) String.valueOf(oldModel.getAge());
         boolean isChanged = !oldAge.equals(age);
 
 //        System.out.println(TAG + "ageChanged: isChanged=" + isChanged);
 
         if (isChanged) {
-            MyModel updatedModel = new MyModel(
+            var updatedModel = new MyModel(
                     oldModel.getFirstName(),
                     oldModel.getLastName(),
                     age.isEmpty() ? 0 : Integer.parseInt(age),
@@ -126,7 +127,7 @@ public class UseCaseObservableList
 
     public void addMembership(int index) {
 
-        MyModel oldModel = models.get(index);
+        var oldModel = (MyModel) models.get(index);
         boolean addMember = !oldModel.isMember();
 
         if (isLogging) System.out.println(
@@ -134,27 +135,31 @@ public class UseCaseObservableList
         );
 
         if (addMember) {
-            MyModel updatedModel = new MyModel(
+            var updatedModel = new MyModel(
                     oldModel.getFirstName(),
                     oldModel.getLastName(),
                     oldModel.getAge(),
                     true
             );
             models.set(index, updatedModel);
+
             notifyItemUpdated(index);
         }
     }
 
     public void removeMembership(int index) {
 
-        MyModel oldModel = models.get(index);
+        var oldModel = (MyModel) models.get(index);
         boolean removeMember = oldModel.isMember();
 
         if (isLogging) System.out.println(
-                TAG + "removeMembership: " + " for model:" + oldModel + " removeMember=" + removeMember);
+                TAG + "removeMembership: "
+                        + " for model:" + oldModel
+                        + " removeMember=" + removeMember
+        );
 
         if (removeMember) {
-            MyModel updatedModel = new MyModel(
+            var updatedModel = new MyModel(
                     oldModel.getFirstName(),
                     oldModel.getLastName(),
                     oldModel.getAge(),
@@ -201,7 +206,7 @@ public class UseCaseObservableList
         // edge case index is out of range
         if (getItemCount() > index) {
 
-            MyModel oldModel = models.get(index);
+            var oldModel = (MyModel) models.get(index);
             boolean isChanged = !oldModel.equals(updatedModel);
 
             /*
@@ -229,10 +234,14 @@ public class UseCaseObservableList
     public void notifyItemsUpdated(int firstIndex,
                                    int lastIndex) {
 
-        if (isLogging) System.out.println(TAG + "notifyItemsUpdated:=" +
-                " from:" + models.get(firstIndex) +
-                " to:" + lastIndex +
-                " there are currently:" + modelListeners.size() + " model listeners to update.");
+        if (isLogging) {
+            System.out.println(TAG
+                    + "notifyItemsUpdated:="
+                    + " from:" + models.get(firstIndex)
+                    + " to:" + lastIndex +
+                    " there are currently:" + modelListeners.size() + " model listeners to update."
+            );
+        }
 
         modelListeners.forEach(listener ->
                 listener.notifyItemsUpdated(firstIndex, lastIndex)
@@ -244,17 +253,23 @@ public class UseCaseObservableList
      * {@link #notifyItemsUpdated(int, int)}
      */
     public void notifyItemUpdated(int index) {
-        if (isLogging)
-            System.out.println(TAG + "notifyItemUpdated: there are: " + modelListeners.size() + " to update");
+        if (isLogging) {
+            System.out.println(
+                    TAG + "notifyItemUpdated: there are: " + modelListeners.size() + " to update"
+            );
+        }
+
         modelListeners.forEach(listener -> listener.notifyItemUpdated(index));
     }
 // endregion update model
 
-// region insert member
+    // region insert member
     public void addNewMember() {
         int index = models.size();
 
-        if (isLogging) System.out.println(TAG + "addNewMember: index=" + index);
+        if (isLogging) {
+            System.out.println(TAG + "addNewMember: index=" + index);
+        }
 
         models.add(new MyModel());
         notifyItemsInserted(index, index);
@@ -263,9 +278,13 @@ public class UseCaseObservableList
     private void insertModels(List<MyModel> models,
                               int index) {
 
-        if (isLogging) System.out.println(TAG + "insertModels: " +
-                " inserting models=" + models +
-                " at index=" + index);
+        if (isLogging) {
+            System.out.println(TAG
+                    + "insertModels: "
+                    + " inserting models=" + models +
+                    " at index=" + index
+            );
+        }
 
         this.models.addAll(index, models);
         notifyItemsInserted(index, index + models.size() - 1);
@@ -276,10 +295,12 @@ public class UseCaseObservableList
      */
     public void notifyItemsInserted(int firstIndex,
                                     int lastIndex) {
-        if (isLogging) System.out.println(TAG + "notifyItemsInserted:" +
-                " from index:" + firstIndex +
-                " to index:" + lastIndex +
-                " sending to " + modelListeners.size() + " listeners");
+        if (isLogging) {
+            System.out.println(TAG + "notifyItemsInserted:"
+                    + " from index:" + firstIndex
+                    + " to index:" + lastIndex
+                    + " sending to " + modelListeners.size() + " listeners");
+        }
 
         modelListeners.forEach(listener ->
                 listener.notifyItemsInserted(firstIndex, lastIndex)
@@ -287,10 +308,13 @@ public class UseCaseObservableList
     }
 // endregion insert member
 
-// region delete member
+    // region delete member
     public void deleteModel(int index) {
-        if (isLogging) System.out.println(TAG + "deleteModel:" +
-                " at index=" + index);
+        if (isLogging) {
+            System.out.println(TAG
+                    + "deleteModel:" + " at index=" + index
+            );
+        }
 
         models.remove(index);
         notifyItemsDeleted(index, index);
@@ -302,8 +326,13 @@ public class UseCaseObservableList
     public void notifyItemsDeleted(int firstIndex,
                                    int lastIndex) {
 
-        if (isLogging) System.out.println(TAG + "notifyItemsDeleted: firstIndex=" + firstIndex +
-                " lastIndex=" + lastIndex + " notifying " + modelListeners.size() + " listeners.");
+        if (isLogging) {
+            System.out.println(TAG + "notifyItemsDeleted: "
+                    + "firstIndex=" + firstIndex
+                    + " lastIndex=" + lastIndex
+                    + " notifying " + modelListeners.size() + " listeners."
+            );
+        }
 
         modelListeners.forEach(listener ->
                 listener.notifyItemsDeleted(firstIndex, lastIndex)
@@ -328,7 +357,9 @@ public class UseCaseObservableList
     }
 
     public void setModels(List<MyModel> models) {
-        if (isLogging) System.out.println(TAG + "setModels: " + models);
+        if (isLogging) {
+            System.out.println(TAG + "setModels: " + models);
+        }
         this.models.clear();
         this.models.addAll(models);
         notifyDatasetChanged();

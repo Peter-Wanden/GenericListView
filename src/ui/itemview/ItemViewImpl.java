@@ -43,7 +43,7 @@ public class ItemViewImpl
         controlsView.createView();
         formView.createView();
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        var splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setDividerSize(0); // turns divider off
         splitPane.setBorder(null);
         splitPane.setTopComponent(formView.getView());
@@ -86,21 +86,21 @@ public class ItemViewImpl
      */
     private void addFormViewListeners() {
 
-        TextListener firstName = new TextListener(formView.getFirstNameField());
+        var firstName = new TextListener(formView.getFirstNameField());
         firstName.addTextChangedListener(controller);
         textListeners[0] = firstName;
 
-        TextListener lastName = new TextListener(formView.getLastNameField());
+        var lastName = new TextListener(formView.getLastNameField());
         lastName.addTextChangedListener(controller);
         textListeners[1] = lastName;
 
-        TextListener age = new TextListener(formView.getAgeField());
+        var age = new TextListener(formView.getAgeField());
         age.addTextChangedListener(controller);
         textListeners[2] = age;
     }
 
     private void removeFormViewListeners() {
-        for (TextListener textListener : textListeners) {
+        for (var textListener : textListeners) {
             textListener.removeTextChangedListener(controller);
         }
     }
@@ -182,7 +182,7 @@ public class ItemViewImpl
         int caretPosition = Math.min(
                 newText.length(), component.getCaretPosition()
         );
-        Document document = component.getDocument();
+        var document = (Document) component.getDocument();
 
         document.removeDocumentListener(listener);
         document = new PlainDocument();

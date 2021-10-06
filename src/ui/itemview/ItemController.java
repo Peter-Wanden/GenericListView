@@ -53,7 +53,7 @@ public class ItemController
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String command = e.getActionCommand();
+        var command = (String) e.getActionCommand();
 
         if (ControlCommand.ADD_AS_MEMBER_COMMAND.name().equals(command)) {
             listViewController.addMembership(index);
@@ -69,7 +69,7 @@ public class ItemController
 
     @Override
     public void textChanged(JTextComponent source) {
-        MyModel newValue = useCase.getModels().get(index);
+        var newValue = (MyModel) useCase.getModels().get(index);
 
         String newText = source.getText();
         String componentName = source.getName();
