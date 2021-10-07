@@ -2,13 +2,11 @@ package main;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
 import data.TestData;
-import ui.dataview.DataView;
-import domain.UseCaseObservableList;
+import domain.usecase.UseCaseObservableList;
 import ui.mylistview.ListViewParent;
 import ui.mylistview.MyGenericListViewController;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class Main {
 

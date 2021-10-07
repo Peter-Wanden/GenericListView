@@ -1,7 +1,7 @@
 package ui.dataview;
 
 import data.MyModel;
-import domain.UseCaseObservableList;
+import domain.usecase.UseCaseObservableList;
 import genericlistview.ModelListener;
 
 import javax.swing.*;

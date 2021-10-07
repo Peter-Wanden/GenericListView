@@ -1,9 +1,9 @@
 package ui.itemview;
 
 import data.MyModel;
-import domain.FieldChangedListener;
-import domain.UseCaseObservableList;
-import domain.UseCaseObservableList.FieldName;
+import domain.usecase.FieldChangedListener;
+import domain.usecase.UseCaseObservableList;
+import domain.usecase.UseCaseObservableList.FieldName;
 import ui.mylistview.MyGenericListViewController;
 import utils.TextListener;
 

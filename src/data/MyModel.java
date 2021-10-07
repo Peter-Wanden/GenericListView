@@ -8,11 +8,7 @@ public class MyModel {
     private final int age;
     private final boolean isMember;
 
-    public MyModel() {
-        this("", "", 0, false);
-    }
-
-    public MyModel(String firstName,
+    private MyModel(String firstName,
                    String lastName,
                    int age,
                    boolean isMember) {
@@ -63,5 +59,56 @@ public class MyModel {
                 ", age=" + age +
                 ", isMember=" + isMember +
                 '}';
+    }
+
+    public static class Builder {
+        private String firstName;
+        private String lastName;
+        private int age;
+        private boolean isMember;
+
+        public Builder() {
+            firstName = "";
+            lastName = "";
+            age = 0;
+            isMember = false;
+        }
+
+        public Builder basedOn(MyModel model) {
+            firstName = model.firstName;
+            lastName = model.lastName;
+            age = model.age;
+            isMember = model.isMember;
+            return this;
+        }
+
+        public Builder setFirstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public Builder setLastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public Builder setAge(int age) {
+            this.age = age;
+            return this;
+        }
+
+        public Builder setMember(boolean member) {
+            isMember = member;
+            return this;
+        }
+
+        public MyModel build() {
+            return new MyModel(
+                    firstName,
+                    lastName,
+                    age,
+                    isMember
+            );
+        }
     }
 }

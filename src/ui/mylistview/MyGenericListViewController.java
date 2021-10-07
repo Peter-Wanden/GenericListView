@@ -1,9 +1,9 @@
 package ui.mylistview;
 
 import data.MyModel;
-import domain.FieldChangedListener;
-import domain.UseCaseObservableList;
-import domain.UseCaseObservableList.FieldName;
+import domain.usecase.FieldChangedListener;
+import domain.usecase.UseCaseObservableList;
+import domain.usecase.UseCaseObservableList.FieldName;
 import genericlistview.ControlActionListener;
 import ui.itemview.ItemController;
 
@@ -34,6 +34,8 @@ public class MyGenericListViewController
         REMOVE_MEMBER_COMMAND,
         DELETE_RECORD_COMMAND,
         ADD_NEW_RECORD_COMMAND
+        // Todo, convert to action command class.
+        //  See UI action commands in Swing UI classes
     }
 
     private final UseCaseObservableList useCase;

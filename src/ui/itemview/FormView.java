@@ -1,11 +1,9 @@
 package ui.itemview;
 
-import domain.UseCaseObservableList.FieldName;
+import domain.usecase.UseCaseObservableList.FieldName;
 import utils.SpringUtilities;
 
 import javax.swing.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 public class FormView {
 

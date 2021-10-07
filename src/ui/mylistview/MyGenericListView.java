@@ -1,7 +1,7 @@
 package ui.mylistview;
 
 import data.MyModel;
-import domain.UseCaseObservableList;
+import domain.usecase.UseCaseObservableList;
 import genericlistview.AbstractGenericListView;
 import ui.itemview.ItemController;
 import ui.itemview.ItemView;

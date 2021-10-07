@@ -133,8 +133,8 @@ public class ItemViewImpl
         MyModel newModel;
         MyModel oldModel;
 
-        newModel = model == null ? new MyModel() : (MyModel) model;
-        oldModel = this.model == null ? new MyModel() : this.model;
+        newModel = model == null ? new MyModel.Builder().build() : (MyModel) model;
+        oldModel = this.model == null ? new MyModel.Builder().build() : this.model;
 
         if (!oldModel.equals(newModel)) {
             this.model = newModel;
@@ -209,16 +209,22 @@ public class ItemViewImpl
      */
     @Override
     public MyModel getModel() {
-        return new MyModel(
-                formView.getFirstNameField().getText(),
-                formView.getLastNameField().getText(),
-
-                formView.getAgeField().getText().equals("") ?
+        return new MyModel.Builder()
+                .setFirstName(
+                        formView.getFirstNameField().getText()
+                )
+                .setLastName(
+                        formView.getLastNameField().getText()
+                )
+                .setAge(
+                        formView.getAgeField().getText().equals("") ?
                         0 :
-                        Integer.parseInt(formView.getAgeField().getText()),
-
-                controlsView.getIsMemberCheckBox().isSelected()
-        );
+                        Integer.parseInt(formView.getAgeField().getText())
+                )
+                .setMember(
+                        controlsView.getIsMemberCheckBox().isSelected()
+                )
+                .build();
     }
 
     /**
